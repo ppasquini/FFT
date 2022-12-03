@@ -3,7 +3,7 @@
 #include <complex>
 #include <vector>
 
-#include"./bit_reversal.hpp"
+#include"./FFT_tools.hpp"
 
 using cVector = std::vector<std::complex<double>>;
 using Complex = std::complex<double>;
