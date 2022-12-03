@@ -8,7 +8,7 @@ using cVector = std::vector<std::complex<double>>;
 using Complex = std::complex<double>;
 constexpr double pi = 3.14159265358979323846;
 
-cVector new_fft ( Complex *p_x, int N, int s)
+cVector recursive_fft ( Complex *p_x, int N, int s)
 {
     cVector y;
     y.resize(N);
@@ -20,11 +20,11 @@ cVector new_fft ( Complex *p_x, int N, int s)
     cVector even;
     cVector odd;
 
-    even = new_fft((p_x), N/2, 2*s);
+    even = recursive_fft((p_x), N/2, 2*s);
     for(size_t i=0; i<N/2; ++i){
         y[i] = even[i];
     }
-    odd = new_fft((p_x + s), N/2, 2*s);
+    odd = recursive_fft((p_x + s), N/2, 2*s);
 
     for(size_t i=0; i<N/2; ++i){
         y[i + N/2] = odd[i];
