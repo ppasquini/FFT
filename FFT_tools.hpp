@@ -13,42 +13,51 @@ namespace FFT
     constexpr double pi = 3.14159265358979323846;
 
 
-    cVector recursive_fft ( Complex *p_x, int N, int s)
+    cVector recursive_fft ( cVector x, int N)
     {
+        if (N==1){
+            //return the first element
+            return x;
+        }
+
+        double Nd = static_cast<double> (N);
+        Complex j = {0.0,1.0};
+        Complex wn = std::exp(-j*2.0*pi/Nd);
+        Complex w = {1.0,0.0};
+
         cVector y;
         y.resize(N);
 
-        if (N==1){
-            //return the first element
-            return {*p_x};
-        }
+        cVector y_even;
+        cVector y_odd;
+        y_even.resize(N/2);
+        y_odd.resize(N/2);
 
         cVector even;
         cVector odd;
+        even.resize(N/2);
+        odd.resize(N/2);
 
-        //Save the even elements on the first half of y
-        even = recursive_fft((p_x), N/2, 2*s);
-        for(size_t i=0; i<N/2; ++i){
-            y[i] = even[i];
+        // Save even elements in even vector and odd elements in odd vector
+        for (std::size_t i = 0; i < N; i++)
+        {
+            if (i%2)
+                odd[i/2] = x[i];
+            else
+                even[i/2] = x[i];
         }
 
-        //Save the first element on the second half of y
-        odd = recursive_fft((p_x + s), N/2, 2*s);
-        for(size_t i=0; i<N/2; ++i){
-            y[i + N/2] = odd[i];
-        }
+        y_even = recursive_fft(even, N/2);
+        y_odd = recursive_fft(odd, N/2);
 
     
-
-        for (size_t k= 0; k < N/2; ++k)
+        for (size_t k = 0; k < N/2; ++k)
         {
-            double kd = static_cast<double> (k);
-            double Nd = static_cast<double> (N);
-            Complex j(0.0,1.0);
-            Complex o = std::exp(-j*2.0*pi*kd/Nd) * y[k + N/2]; 
-            Complex p = y[k];
+            Complex o =  w * y_odd[k]; 
+            Complex p = y_even[k];
             y[k] = p + o;
             y[k + N/2] = p - o;
+            w *= wn; 
         }
 
         return y;

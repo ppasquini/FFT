@@ -32,7 +32,7 @@ int main ()
     auto steps = std::log2(N);
 
     //Find the result of the FFT using the recursive algorithm
-    cVector recursive_solution = FFT::recursive_fft(&x[0], N, 1);
+    cVector recursive_solution = FFT::recursive_fft(x, N);
 
     //COmpute vit reversal
     x = FFT::vector_reversal(x,N);
