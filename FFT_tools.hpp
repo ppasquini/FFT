@@ -12,6 +12,23 @@ namespace FFT
 {
     constexpr double pi = 3.14159265358979323846;
 
+    cVector dft(cVector x, int dim){
+        Complex i(0.0,1.0);
+        cVector result;
+        result.resize(dim);
+
+        for(size_t k=0; k<dim; ++k){
+            Complex sum = 0;;
+            for(size_t j= 0; j <dim; j++){
+                sum += x[j] * (cos((2*pi*k*j)/dim) - i * sin((2*pi*k*j)/dim));
+            }
+            result[k] = sum;
+        }
+        
+        return result;
+    }
+
+
 
     cVector recursive_fft ( cVector x, int N)
     {
@@ -58,7 +75,7 @@ namespace FFT
             y[k] = p + o;
             y[k + N/2] = p - o;
             w *= wn; 
-        }
+        }__cpp_lambdas
 
         return y;
     }   
