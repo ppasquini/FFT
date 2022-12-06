@@ -21,9 +21,8 @@ int main ()
     //Create random test vector
     for (int t = 0; t < N; t++)
     {
-        double real = (std::rand() % 100) / 100.0;
-        Complex number = {real, 0.0};
-        x[t] = number;
+        double real = (std::rand() % 100) / 20.0 - 2.5;
+        x[t] =  {real, 0.0};
     }
 
     Complex im = {0.0,1.0};
