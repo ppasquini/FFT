@@ -75,7 +75,7 @@ namespace FFT
             y[k] = p + o;
             y[k + N/2] = p - o;
             w *= wn; 
-        }__cpp_lambdas
+        }
 
         return y;
     }   

@@ -13,7 +13,7 @@ int main ()
     cVector x;
     //Number of elements
     const int N = 8;
-    double Nd = static_cast<double> (8);
+    double Nd = static_cast<double> (N);
     //w coefficient
     Complex wd;
 
@@ -33,6 +33,8 @@ int main ()
 
     //Find the result of the FFT using the recursive algorithm
     cVector recursive_solution = FFT::recursive_fft(x, N);
+
+    cVector discrete_solution = FFT::dft(x, N);
 
     //COmpute vit reversal
     x = FFT::vector_reversal(x,N);
@@ -63,8 +65,9 @@ int main ()
     //Print results
     for (std::size_t i=0; i<N; i++)
     {
-        std::cout << x[i].real() << " " << x[i].imag() << std::endl;
-        std::cout << recursive_solution[i].real() << " " << recursive_solution[i].imag() << std::endl << std::endl;
+        std::cout << "Non-recursive solution: " << x[i].real() << " " << x[i].imag() << std::endl;
+        std::cout << "Recursive solution: " << recursive_solution[i].real() << " " << recursive_solution[i].imag() << std::endl;
+        std::cout << "Discrete solution: " << discrete_solution[i].real() << " " << discrete_solution[i].imag() << std::endl << std::endl;
 
     }
     
