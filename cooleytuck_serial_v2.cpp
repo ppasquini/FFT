@@ -12,7 +12,7 @@ int main ()
 {
     cVector x;
     //Number of elements
-    const int N = std::pow(2,5);
+    const int N = std::pow(2,20);
     x.resize(N);
     //w roots and temporary variables
     Complex wd, w, o, p;
@@ -22,7 +22,7 @@ int main ()
     for (int t = 0; t < N; t++)
     {
         double real = (std::rand() % 100) / 20.0 - 2.5;
-        x[t] =  {real, 0.0};
+        x[t] =  {real, 1.0};
     }
 
     Complex im = {0.0,1.0};
@@ -44,7 +44,7 @@ int main ()
     {
         auto power = std::pow(2,i);
         // Calculate primitive root w
-        wd = std::exp(2.0*FFT::pi*im/power);
+        wd = std::exp(-2.0*FFT::pi*im/power);
         w = {1.0,0.0};
         // Iterate inside even/odd vectors
         for (int j = 0; j < power/2; j++) // j = exponent of w
@@ -72,17 +72,13 @@ int main ()
     
     //Evaluate correctness by comparing with the result of the recursive FFT
     bool correct = true;
-    double tol = 1.e-14;
-    if(x.size() != recursive_solution.size()) correct = false;
+    double tol = 1.e-10;
+    if(x.size() != discrete_solution.size()) correct = false;
     for (std::size_t i=0; i<N; i++)
     {         
-        size_t l;                                      
-        for(l=0; l<N; ++l){
-            if((std::abs(x[i].real() - recursive_solution[l].real()) < tol) && 
-                (std::abs(x[i].imag() - recursive_solution[l].imag()) < tol)) 
-                break;
-        }
-        if(l == N){
+
+        if(!((std::abs(x[i].real() - discrete_solution[i].real()) < tol) && 
+                (std::abs(x[i].imag() - discrete_solution[i].imag()) < tol))){
             std::cout << "Value wrong: " << x[i] << " Index: " << i << std::endl;
             correct = false;
         }
