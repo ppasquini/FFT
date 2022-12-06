@@ -3,7 +3,7 @@
 #include <complex>
 #include <vector>
 
-#include"./FFT_tools.hpp"
+#include "./FFT_tools.hpp"
 
 using cVector = std::vector<std::complex<double>>;
 using Complex = std::complex<double>;
@@ -12,18 +12,18 @@ int main ()
 {
     cVector x;
     //Number of elements
-    const int N = 8;
-    double Nd = static_cast<double> (N);
-    //w coefficient
-    Complex wd;
+    const int N = std::pow(2,5);
+    x.resize(N);
+    //w roots and temporary variables
+    Complex wd, w, o, p;
 
-    //Create random vector
+
+    //Create random test vector
     for (int t = 0; t < N; t++)
     {
-        double real = (std::rand() % 10) / 10.0;
-        double imag = (std::rand() % 10) / 10.0;
-        Complex number = {real, imag};
-        x.emplace_back(number);
+        double real = (std::rand() % 100) / 100.0;
+        Complex number = {real, 0.0};
+        x[t] = number;
     }
 
     Complex im = {0.0,1.0};
@@ -34,29 +34,30 @@ int main ()
     //Find the result of the FFT using the recursive algorithm
     cVector recursive_solution = FFT::recursive_fft(x, N);
 
+    //Find the result of the DTF using standard algorithm
     cVector discrete_solution = FFT::dft(x, N);
 
-    //COmpute vit reversal
+    //Compute bit reversal
     x = FFT::vector_reversal(x,N);
 
     // Iterate Steps
     for (int i = 1; i <= steps; i++)
     {
-
         auto power = std::pow(2,i);
-        //Calculate coefficient w
+        // Calculate primitive root w
         wd = std::exp(2.0*FFT::pi*im/power);
+        w = {1.0,0.0};
         // Iterate inside even/odd vectors
-        for (int j = 0; j < power/2; j++)
+        for (int j = 0; j < power/2; j++) // j = exponent of w
         {
             for (int k = j; k < N; k+=power)
             {
-                double jd = static_cast<double> (j);
-                Complex o = std::pow(wd, jd) * x[k + power/2];
-                Complex p = x[k]; 
+                o = w * x[k + power/2];
+                p = x[k]; 
                 x[k] = p + o;
                 x[k + power/2] = p - o;
             }
+            w *= wd;
         }
     }
 
@@ -68,7 +69,6 @@ int main ()
         std::cout << "Non-recursive solution: " << x[i].real() << " " << x[i].imag() << std::endl;
         std::cout << "Recursive solution: " << recursive_solution[i].real() << " " << recursive_solution[i].imag() << std::endl;
         std::cout << "Discrete solution: " << discrete_solution[i].real() << " " << discrete_solution[i].imag() << std::endl << std::endl;
-
     }
     
     //Evaluate correctness by comparing with the result of the recursive FFT
@@ -79,15 +79,20 @@ int main ()
     {         
         size_t l;                                      
         for(l=0; l<N; ++l){
-            if((std::abs(x[i].real() - recursive_solution[l].real()) < tol) && (std::abs(x[i].imag() - recursive_solution[l].imag())<tol)) break;
+            if((std::abs(x[i].real() - recursive_solution[l].real()) < tol) && 
+                (std::abs(x[i].imag() - recursive_solution[l].imag()) < tol)) 
+                break;
         }
         if(l == N){
-            std::cout << "Value wrong: " << x[i] << std::endl;
+            std::cout << "Value wrong: " << x[i] << " Index: " << i << std::endl;
             correct = false;
         }
 
     }    
-    if(correct) std::cout << "Both algorithm match!" << std::endl;
-    else std::cout << "Something is wrong!" << std::endl;
+    if(correct) 
+        std::cout << "Both algorithm match!" << std::endl;
+    else 
+        std::cout << "Something is wrong!" << std::endl;
 
+    return 0;
 }
