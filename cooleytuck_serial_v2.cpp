@@ -12,7 +12,7 @@ int main ()
 {
     cVector x;
     //Number of elements
-    const int N = std::pow(2,20);
+    const int N = std::pow(2,10);
     x.resize(N);
     //w roots and temporary variables
     Complex wd, w, o, p;
@@ -22,7 +22,9 @@ int main ()
     for (int t = 0; t < N; t++)
     {
         double real = (std::rand() % 100) / 20.0 - 2.5;
-        x[t] =  {real, 1.0};
+        double imag = (std::rand() % 100) / 20.0 - 2.5;
+
+        x[t] =  {real, imag};
     }
 
     Complex im = {0.0,1.0};
@@ -73,13 +75,14 @@ int main ()
     //Evaluate correctness by comparing with the result of the recursive FFT
     bool correct = true;
     double tol = 1.e-10;
+    std::cout.precision(16);
     if(x.size() != discrete_solution.size()) correct = false;
     for (std::size_t i=0; i<N; i++)
     {         
 
         if(!((std::abs(x[i].real() - discrete_solution[i].real()) < tol) && 
                 (std::abs(x[i].imag() - discrete_solution[i].imag()) < tol))){
-            std::cout << "Value wrong: " << x[i] << " Index: " << i << std::endl;
+            std::cout << "Value wrong: " << x[i] << " at index: " << i << ". Discrete value: " << discrete_solution[i] << ". Recursive value: " << recursive_solution[i] << std::fixed << std::endl;
             correct = false;
         }
 
