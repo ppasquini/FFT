@@ -14,8 +14,8 @@ cVector cooleytuck_parallel(cVector vector){
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
 
-    Complex wd, w, w_1, w_2, o, p;
-    Complex im = {0.0,1.0};
+    Complex wd, w, o, p;
+    const Complex im = {0.0,1.0};
 
 
 
@@ -26,9 +26,8 @@ cVector cooleytuck_parallel(cVector vector){
     cVector local_vector;
     local_vector.resize(local_size);
 
-    MPI_Scatter(vector.data(), local_size , MPI_DOUBLE_COMPLEX ,local_vector.data(), local_size, MPI_DOUBLE_COMPLEX , 0, MPI_COMM_WORLD);
+    MPI_Scatter(vector.data(), local_size , MPI_DOUBLE_COMPLEX, local_vector.data(), local_size, MPI_DOUBLE_COMPLEX , 0, MPI_COMM_WORLD);
 
-    
     std::cout << "Thread: " << mpi_rank << " in PHASE: II" << std::endl;
 
     //PHASE II: compute with local elements
@@ -68,19 +67,21 @@ cVector cooleytuck_parallel(cVector vector){
         // Calculate primitive root w
         wd = std::exp(-2.0*FFT::pi*im/power);
         int sign;
-        unsigned int size =static_cast<unsigned int>((power/(local_size)));
-        if((mpi_rank%size) < (size/2)){
+        int size = static_cast <unsigned int> ((power/(local_size))); //numero vettori scambio
+        // Determine if the processor has to send data "forwards" or "backwards"
+        if((mpi_rank % size) < (size/2)){
             sign = 1;
-            w = std::pow(wd, (mpi_rank%size)*local_size);
+            w = std::pow(wd, (mpi_rank % size) * local_size);
         }
         else{
             sign = -1;
-            w = std::pow(wd, ((mpi_rank + sign * (size/2))%size)*local_size);
+            w = std::pow(wd, ((mpi_rank + sign * (size/2)) % size) * local_size);
         }
-        int receiver = mpi_rank + sign * (power/(2*local_size));
-        std::cout << "Thread: " << mpi_rank << " send to " << receiver << std::endl;
-        MPI_Send(local_vector.data() , local_size, MPI_DOUBLE_COMPLEX, receiver, 0, MPI_COMM_WORLD);
-        MPI_Recv(swap_vector.data(), local_size , MPI_DOUBLE_COMPLEX, receiver, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        //Rank of processor communicating with
+        unsigned int swap = mpi_rank + sign * size/2;
+        std::cout << "Thread: " << mpi_rank << " send to " << swap << std::endl;
+        MPI_Send(local_vector.data() , local_size, MPI_DOUBLE_COMPLEX, swap, 0, MPI_COMM_WORLD);
+        MPI_Recv(swap_vector.data(), local_size , MPI_DOUBLE_COMPLEX, swap, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
         std::cout << "Thread: " << mpi_rank << " Step: " << i << std::endl;
 
@@ -105,7 +106,8 @@ cVector cooleytuck_parallel(cVector vector){
     cVector result;
     result.resize(N);
 
-    MPI_Gather(local_vector.data(), local_size, MPI_DOUBLE_COMPLEX, result.data(), local_size, MPI_DOUBLE_COMPLEX, 0, MPI_COMM_WORLD);
+    MPI_Gather(local_vector.data(), local_size, MPI_DOUBLE_COMPLEX,
+                result.data(), local_size, MPI_DOUBLE_COMPLEX, 0, MPI_COMM_WORLD);
     std::cout << "Thread: " << mpi_rank << " DONE" << std::endl;
 
 
@@ -118,14 +120,14 @@ cVector cooleytuck_parallel(cVector vector){
 int main (int argc, char* argv[])
 {
     MPI_Init(&argc, &argv);
-    int mpi_rank,mpi_size;
+    int mpi_rank, mpi_size;
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
 
     cVector x;
     cVector recursive_solution;
     cVector discrete_solution;
     //Number of elements
-    const unsigned int N = std::pow(2,9);
+    const unsigned int N = std::pow(2,11);
     x.resize(N);
 
     if (mpi_rank == 0){
