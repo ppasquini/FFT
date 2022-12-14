@@ -1,13 +1,13 @@
 #include <iostream>
 #include <cmath>
-#include <complex>
-#include <vector>
+//#include <complex>
+//#include <vector>
 #include <mpi.h>
-
+#include "FFT_traits.hpp"
 #include "./FFT_tools.hpp"
 
-using cVector = std::vector<std::complex<double>>;
-using Complex = std::complex<double>;
+//using cVector = std::vector<std::complex<double>>;
+//using Complex = std::complex<double>;
 
 cVector cooleytuck_parallel(cVector vector){
     int mpi_rank,mpi_size;

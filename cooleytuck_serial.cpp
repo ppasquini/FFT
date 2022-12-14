@@ -1,13 +1,13 @@
 #include <iostream>
 #include <cmath>
-#include <complex>
-#include <vector>
-
+//#include <complex>
+//#include <vector>
+#include "FFT_traits.hpp"
 #include"./FFT_tools.hpp"
 
-using cVector = std::vector<std::complex<double>>;
-using Complex = std::complex<double>;
-constexpr double pi = 3.14159265358979323846;
+//using cVector = std::vector<std::complex<double>>;
+//using Complex = std::complex<double>;
+//constexpr double pi = 3.14159265358979323846;
 
 int main ()
 {

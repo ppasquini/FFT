@@ -1,12 +1,12 @@
 #include <iostream>
 #include <cmath>
-#include <complex>
-#include <vector>
+//#include <complex>
+//#include <vector>
+#include "FFT_traits.hpp"
 
-
-using cVector = std::vector<std::complex<double>>;
-using Complex = std::complex<double>;
-constexpr double pi = 3.14159265358979323846;
+//using cVector = std::vector<std::complex<double>>;
+//using Complex = std::complex<double>;
+//constexpr double pi = 3.14159265358979323846;
 
 cVector recursive_fft ( Complex *p_x, int N, int s)
 {
