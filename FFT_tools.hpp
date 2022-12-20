@@ -110,4 +110,22 @@ namespace FFT
         return y;
 
     }
+
+        cVector parallel_vector_reversal(cVector x, unsigned int dim){
+        cVector y;
+        y.resize(x.size());
+        unsigned int j = 0;
+        //Save every elements on its reversed position
+        #pragma omp parallel firstprivate(j)
+        {
+            #pragma omp for 
+            for( unsigned int i=0; i<dim; ++i){
+                j = bit_reversal(i,std::log2(dim));
+                y[j] = x[i];
+
+            }
+        }
+        return y;
+
+    }
 }

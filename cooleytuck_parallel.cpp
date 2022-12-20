@@ -18,6 +18,41 @@ auto timeit(const std::function<void()>& f) {
     return duration_cast<milliseconds>(t1 - t0).count();
 }
 
+cVector cooleytuck_serial(cVector x){
+
+    unsigned int N = x.size();
+    Complex wd, w, o, p;
+    Complex im = {0.0, 1.0};
+
+    //Compute bit reversal
+    x = FFT::vector_reversal(x, N);
+
+    unsigned int steps = std::log2(N);
+
+    // Iterate Steps
+    for (int i = 1; i <= steps; i++)
+    {
+        auto power = std::pow(2,i);
+        // Calculate primitive root w
+        wd = std::exp(-2.0*FFT::pi*im/power);
+        w = {1.0,0.0};
+        // Iterate inside even/odd vectors
+        for (int j = 0; j < power/2; j++) // j = exponent of w
+        {
+            for (int k = j; k < N; k+=power)
+            {
+                o = w * x[k + power/2];
+                p = x[k]; 
+                x[k] = p + o;
+                x[k + power/2] = p - o;
+            }
+            w *= wd;
+        }
+    }
+
+    return x;
+}
+
 cVector cooleytuck_parallel(cVector vector){
     int mpi_rank,mpi_size;
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
@@ -25,6 +60,12 @@ cVector cooleytuck_parallel(cVector vector){
 
     Complex wd, w, o, p;
     const Complex im = {0.0,1.0};
+
+    if(mpi_rank == 0){
+        std::cout << "PHASE: I" << std::endl;
+        //PHASE I: Compute bit reversal
+        vector = FFT::parallel_vector_reversal(vector, vector.size());
+    }
 
 
 
@@ -58,7 +99,7 @@ cVector cooleytuck_parallel(cVector vector){
                 local_vector[k + power/2] = p - o;
             }
             w *= wd;
-        }        
+        }    
 
     }
 
@@ -88,12 +129,12 @@ cVector cooleytuck_parallel(cVector vector){
         }
         //Rank of processor communicating with
         unsigned int swap = mpi_rank + sign * size/2;
-        std::cout << "Thread: " << mpi_rank << " send to " << swap << std::endl;
+        //std::cout << "Thread: " << mpi_rank << " send to " << swap << std::endl;
         MPI_Sendrecv(local_vector.data(), local_size, MPI_DOUBLE_COMPLEX, swap, 0, swap_vector.data(), local_size, MPI_DOUBLE_COMPLEX, swap, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);  
 
-        std::cout << "Thread: " << mpi_rank << " Step: " << i << std::endl;
+        //std::cout << "Thread: " << mpi_rank << " Step: " << i << std::endl;
 
-        // Iterate inside even/odd vectorsS
+        // Iterate inside even/odd vectors
         for (size_t k = 0; k < local_size; k++)
             {
             if(sign > 0){
@@ -107,7 +148,7 @@ cVector cooleytuck_parallel(cVector vector){
                 local_vector[k] = p - o;
             }
             w *= wd;
-        }      
+        }    
     }
 
 
@@ -133,10 +174,10 @@ int main (int argc, char* argv[])
 
     cVector x;
     cVector parallel_solution;
-    cVector recursive_solution;
+    cVector iterative_solution;
     cVector discrete_solution = {0.0, 0.0};
     //Number of elements
-    const unsigned int N = std::pow(2,25);
+    const unsigned int N = std::pow(2,14);
     x.resize(N);
 
     if (mpi_rank == 0){
@@ -150,35 +191,24 @@ int main (int argc, char* argv[])
             x[t] =  {real, imag};
         }
 
-        //Find the result of the DTF using standard algorithm
-        //discrete_solution = FFT::dft(x, N);
-
-
-        std::cout << "PHASE: I" << std::endl;
-        //PHASE I: Compute bit reversal
-        parallel_solution = FFT::vector_reversal(x,N);
-
     }
 
-    const auto dt = timeit([&]() { parallel_solution = cooleytuck_parallel(parallel_solution); });
+    const auto dt_parallel = timeit([&]() { parallel_solution = cooleytuck_parallel(x); });
 
     if(mpi_rank == 0){
 
         //Find the result of the DTF using standard algorithm
-        const auto dt_recursive = timeit([&]() { recursive_solution = FFT::recursive_fft(x, N); }); 
+        const auto dt_serial = timeit([&]() { iterative_solution = cooleytuck_serial(x); }); 
 
         std::cout << "FFT: " << std::endl;
         
         bool correct = true;
-        //Print results
-        #ifdef PRINT
-            for (std::size_t i=0; i<N; i++)
-            {
-                std::cout << "Non-recursive solution: " << parallel_solution[i].real() << " " << parallel_solution[i].imag() << std::endl;
-                std::cout << "Recursive solution: " << recursive_solution[i].real() << " " << recursive_solution[i].imag() << std::endl;
-                std::cout << "Discrete solution: " << discrete_solution[i].real() << " " << discrete_solution[i].imag() << std::endl << std::endl;
-            }
 
+
+        #ifdef TEST
+        
+            //Find the result of the DTF using standard algorithm
+            discrete_solution = FFT::dft(x, N);
             //Evaluate correctness by comparing with the result of the recursive FFT
             double tol = 1.e-6;
             std::cout.precision(16);
@@ -188,16 +218,30 @@ int main (int argc, char* argv[])
 
                 if(!((std::abs(parallel_solution[i].real() - discrete_solution[i].real()) < tol) && 
                         (std::abs(parallel_solution[i].imag() - discrete_solution[i].imag()) < tol))){
-                    std::cout << "Value wrong: " << parallel_solution[i] << " at index: " << i << ". Discrete value: " << discrete_solution[i] << ". Recursive value: " << recursive_solution[i] << std::fixed << std::endl;
+                    std::cout << "Value wrong: " << parallel_solution[i] << " at index: " << i << ". Discrete value: " << discrete_solution[i] << ". Recursive value: " << iterative_solution[i] << std::fixed << std::endl << std::endl;
                     correct = false;
                 }
 
             }    
+            if(correct) 
+                std::cout << "Algorithm completed successfully" << std::endl;
+            else 
+                std::cout << "Something is wrong!" << std::endl;
         #endif
-        if(correct) 
-            std::cout << "Algorithm completed successfully in: " << dt << " ms against the " << dt_recursive << " ms of the recursive algorithm." << std::endl;
-        else 
-            std::cout << "Something is wrong!" << std::endl;
+        //Print results
+        #ifdef PRINT
+            for (std::size_t i=0; i<N; i++)
+            {
+                std::cout << "At index " << i << ": " << std::endl;
+                std::cout << "Parallel solution: " << parallel_solution[i].real() << " " << parallel_solution[i].imag() << std::endl;
+                std::cout << "Iterative solution: " << iterative_solution[i].real() << " " << iterative_solution[i].imag() << std::endl;
+                std::cout << "Discrete solution: " << discrete_solution[i].real() << " " << discrete_solution[i].imag() << std::endl << std::endl;
+            }
+        #endif
+        std::cout << "Parallel algorithm completed in: " << dt_parallel << " ms against the " << dt_serial << " ms of the iterative serial algorithm." << std::endl;
+
+            
+
     }
 
     MPI_Finalize();
