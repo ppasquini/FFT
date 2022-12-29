@@ -10,11 +10,13 @@ main(int argc, char * argv[])
 
     FFT_1D fft;
     if(mpi_rank == 0)
-    fft.load_input();
+    fft.generate_random_input(20);
     fft.parallel_solve();
     MPI_Finalize();
-    if(mpi_rank == 0)
-    fft.output();
+    if(mpi_rank == 0){
+        //fft.output_and_test();
+        fft.evaluate_time_and_error();
+    }
 
 
     return 0;

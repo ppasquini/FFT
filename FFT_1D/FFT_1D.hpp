@@ -13,6 +13,9 @@ class FFT_1D
         load_input();
 
         void
+        generate_random_input(unsigned int power);
+
+        void
         discrete_solve();
 
         cVector
@@ -28,10 +31,13 @@ class FFT_1D
         test();
 
         void
-        output();
+        output_and_test();
 
+        void
+        evaluate_time_and_error();
 
     protected:
+
         unsigned int 
         bit_reversal(unsigned int value, unsigned int dim);
 
@@ -40,11 +46,19 @@ class FFT_1D
         
         unsigned int N;
 
+        double time_parallel;
+
+        double time_serial;
+        
         cVector input;
 
         cVector discrete_solution;
 
-        cVector solution;
+        cVector parallel_solution;
+
+        cVector iterative_solution;
+
+
 
 
 };

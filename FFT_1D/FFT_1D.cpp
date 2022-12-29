@@ -1,11 +1,14 @@
 #include "FFT_1D.hpp"
 #include <mpi.h>
+#include <chrono>
+
+using namespace std::chrono;
 
 void
-FFT_1D::load_input(){
+FFT_1D::generate_random_input(unsigned int power){
     std::cout << "Loading input" << std::endl;
 
-    N = std::pow(2,14);
+    N = std::pow(2,power);
     input.resize(N);
     //Create random test vector
     for (int t = 0; t < N; t++)
@@ -119,7 +122,7 @@ FFT_1D::iterative_solve(){
     Complex im = {0.0, 1.0};
 
     //Compute bit reversal
-    solution = vector_reversal(input, N);
+    iterative_solution = vector_reversal(input, N);
 
     unsigned int steps = std::log2(N);
 
@@ -135,10 +138,10 @@ FFT_1D::iterative_solve(){
         {
             for (int k = j; k < N; k+=power)
             {
-                o = w * solution[k + power/2];
-                p = solution[k]; 
-                solution[k] = p + o;
-                solution[k + power/2] = p - o;
+                o = w * iterative_solution[k + power/2];
+                p = iterative_solution[k]; 
+                iterative_solution[k] = p + o;
+                iterative_solution[k + power/2] = p - o;
             }
             w *= wd;
         }
@@ -147,9 +150,13 @@ FFT_1D::iterative_solve(){
 
 void
 FFT_1D::parallel_solve(){
+
+    const auto t0 = high_resolution_clock::now();
+
     int mpi_rank,mpi_size;
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+
 
     Complex wd, w, o, p;
     const Complex im = {0.0,1.0};
@@ -159,19 +166,19 @@ FFT_1D::parallel_solve(){
         std::cout << "Solving prolem parallel" << std::endl;
         std::cout << "PHASE: I" << std::endl;
         //PHASE I: Compute bit reversal
-        solution = vector_reversal(input, N);
+        parallel_solution = vector_reversal(input, N);
     }
 
 
 
-    unsigned int N = solution.size();
+    unsigned int N = parallel_solution.size();
     MPI_Bcast(&N, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
     const unsigned int local_size = N / mpi_size;
 
     cVector local_vector;
     local_vector.resize(local_size);
 
-    MPI_Scatter(solution.data(), local_size , MPI_DOUBLE_COMPLEX, local_vector.data(), local_size, MPI_DOUBLE_COMPLEX , 0, MPI_COMM_WORLD);
+    MPI_Scatter(parallel_solution.data(), local_size , MPI_DOUBLE_COMPLEX, local_vector.data(), local_size, MPI_DOUBLE_COMPLEX , 0, MPI_COMM_WORLD);
 
     std::cout << "Thread: " << mpi_rank << " in PHASE: II" << std::endl;
 
@@ -247,7 +254,13 @@ FFT_1D::parallel_solve(){
     }
 
     MPI_Gather(local_vector.data(), local_size, MPI_DOUBLE_COMPLEX,
-                solution.data(), local_size, MPI_DOUBLE_COMPLEX, 0, MPI_COMM_WORLD);
+                parallel_solution.data(), local_size, MPI_DOUBLE_COMPLEX, 0, MPI_COMM_WORLD);
+
+    if(mpi_rank == 0){
+        const auto t1 = high_resolution_clock::now();
+        time_parallel =  duration_cast<milliseconds>(t1 - t0).count();
+    }
+
     std::cout << "Thread: " << mpi_rank << " DONE" << std::endl;
 }
 
@@ -260,13 +273,13 @@ FFT_1D::test(){
     //Evaluate correctness by comparing with the result of the recursive FFT
     double tol = 1.e-6;
     std::cout.precision(16);
-    if(solution.size() != discrete_solution.size()) correct = false;
+    if(parallel_solution.size() != discrete_solution.size()) correct = false;
     for (std::size_t i=0; i<N; i++)
     {         
 
-        if(!((std::abs(solution[i].real() - discrete_solution[i].real()) < tol) && 
-                (std::abs(solution[i].imag() - discrete_solution[i].imag()) < tol))){
-            std::cout << "Value wrong: " << solution[i] << " at index: " << i << ". Discrete value: " << discrete_solution[i] << ". Recursive value: " << "iterative_solution[i]" << std::fixed << std::endl << std::endl;
+        if(!((std::abs(parallel_solution[i].real() - discrete_solution[i].real()) < tol) && 
+                (std::abs(parallel_solution[i].imag() - discrete_solution[i].imag()) < tol))){
+            std::cout << "Value wrong: " << parallel_solution[i] << " at index: " << i << ". Discrete value: " << discrete_solution[i] << ". Recursive value: " << "iterative_solution[i]" << std::fixed << std::endl << std::endl;
             correct = false;
         }
 
@@ -278,7 +291,7 @@ FFT_1D::test(){
 }
 
 void
-FFT_1D::output(){
+FFT_1D::output_and_test(){
     std::cout << "=================================" << std::endl;
     std::cout << "Printing output:" << std::endl;
 
@@ -288,11 +301,35 @@ FFT_1D::output(){
     for (std::size_t i=0; i<N; i++)
     {
         std::cout << "At index " << i << ": " << std::endl;
-        std::cout << "Parallel solution: " << solution[i].real() << " " << solution[i].imag() << std::endl;
+        std::cout << "Parallel solution: " << parallel_solution[i].real() << " " << parallel_solution[i].imag() << std::endl;
         std::cout << "Discrete solution: " << discrete_solution[i].real() << " " << discrete_solution[i].imag() << std::endl << std::endl;
     }
 
     test();
+}
+
+
+void
+FFT_1D::evaluate_time_and_error(){
+    std::cout << "=================================" << std::endl;
+    std::cout << "Time Evaluation" <<std::endl << "Compared with best serial implementation(iterative): " << std::endl;   
+
+    const auto t0 = high_resolution_clock::now();
+    iterative_solve();
+    const auto t1 = high_resolution_clock::now();
+    time_serial = duration_cast<milliseconds>(t1 - t0).count();
+
+    std::cout << "Time taken by Serial Implementation: " << time_serial << " ms" << std::endl << "Time taken by Parallel Implementation: " << time_parallel << " ms" << std::endl;
+    auto difference = time_serial - time_parallel;
+    std::cout << "Time gained: "<< difference << " ms" << std::endl;
+
+    std::cout << "=================================" << std::endl;
+    std::cout << "Error Evaluation" <<std::endl << "Compared with best serial implementation(iterative): " << std::endl;
+
+    //TODO: COMPLETE ERROR COMPUTATION
+    //double relative_error = std::abs(parallel_solution. - iterative_solution)/std::abs(iterative_solution);
+
+    //std::cout << "Relative error: " << relative_error << std::endl;
 }
 
 
