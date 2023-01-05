@@ -64,23 +64,23 @@ FFT_2D::iterative_solve(){
 
     for (std::size_t i = 0; i < N; i++)
     {
-        std::copy(input[N*i], input[N*i+N-1], temp_input.begin());
+        std::copy(input[i].begin(), input[i].end(), temp_input.begin());
         iterative_solve_wrapped();
-        std::copy(temp_solution.begin(), temp_solution.end(), iterative_solution[N*i]);
+        std::copy(temp_solution.begin(), temp_solution.end(), iterative_solution[i].begin());
     }
 
     for (std::size_t i = 0; i < N; i++)
         for (std::size_t c = 0; c < N; c++)
-            iterative_solution[N*i+c] = 1/Nd * iterative_solution[N*i+c];
+            iterative_solution[i][c] = 1/Nd * iterative_solution[i][c];
 
 
     for (std::size_t i = 0; i < N; i++)
     {
         for (std::size_t c = 0; c < N; c++)
-            temp_input[c] = iterative_solution[i + N*c];
+            temp_input[c] = iterative_solution[c][i];
         iterative_solve_wrapped();
         for (std::size_t c = 0; c < N; c++)
-            iterative_solution[i + N*c] = 1/Nd * temp_solution[c];
+            iterative_solution[c][i] = 1/Nd * temp_solution[c];
     }
         
 }
@@ -126,18 +126,18 @@ FFT_2D::parallel_solve(){
 
     for (std::size_t i = 0; i < N; i++)
     {
-        std::copy(input[N*i], input[N*i+N-1], temp_input.begin());
+        std::copy(input[i].begin(), input[i].end(), temp_input.begin());
         parallel_solve_wrapped();
-        std::copy(temp_solution.begin(), temp_solution.end(), iterative_solution[N*i]);
+        std::copy(temp_solution.begin(), temp_solution.end(), iterative_solution[i].begin());
     }
 
     for (std::size_t i = 0; i < N; i++)
     {
         for (std::size_t c = 0; c < N; c++)
-            temp_input[c] = parallel_solution[i + N*c];
+            temp_input[c] = parallel_solution[c][i];
         parallel_solve_wrapped();
         for (std::size_t c = 0; c < N; c++)
-            parallel_solution[i + N*c] = 1/Nd * temp_solution[c];
+            parallel_solution[c][i] = 1/Nd * temp_solution[c];
     }
 
     const auto t1 = high_resolution_clock::now();
