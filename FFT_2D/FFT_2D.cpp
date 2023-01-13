@@ -60,14 +60,12 @@ FFT_2D::iterative_solve(){
     iterative_solution.resize(N,N);
 
 
-    #pragma omp parallel for shared(input, iterative_solution) firstprivate(input_vector) num_threads(2)
     for (std::size_t i = 0; i < N; i++)
     {
         cVector input_vector = input.row(i);
         iterative_solution.row(i) = iterative_solve_wrapped(input_vector);
     }
 
-    #pragma omp parallel for shared(input, iterative_solution) firstprivate(input_vector) num_threads(2)
     for (std::size_t i = 0; i < N; i++)
     {
         cVector input_vector = input.col(i);
