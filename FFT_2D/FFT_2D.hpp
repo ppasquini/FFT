@@ -21,6 +21,9 @@ class FFT_2D
         void
         iterative_solve_wrapped();
 
+        cVector
+        iterative_solve_wrapped(cVector x);
+
         void
         parallel_solve();
 

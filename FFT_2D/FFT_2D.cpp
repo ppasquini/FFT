@@ -1,6 +1,7 @@
 #include "FFT_2D.hpp"
 #include <mpi.h>
 #include <chrono>
+#include <omp.h>
 
 using namespace std::chrono;
 
@@ -9,20 +10,10 @@ FFT_2D::generate_random_input(unsigned int power){
     std::cout << "Loading input" << std::endl;
 
     N = std::pow(2,power);
-    input.resize(N);
+    input = cMatrix::Random(N,N);
     //Create random test matrix
-    for (int k = 0; k < N; k++)
-    {
-        input[k].resize(N);
 
-        for (int t = 0; t < N; t++)
-        {
-            double real = (std::rand() % 100) / 20.0 - 2.5;
-            double imag = (std::rand() % 100) / 20.0 - 2.5;
-
-            input[k][t] =  {real, imag};
-        }
-    }
+    std::cout << "Done loading" << std::endl;
     
 }
 
@@ -51,39 +42,40 @@ FFT_2D::vector_reversal(cVector x, unsigned int dim){
     //Save every elements on its reversed position
     for( unsigned int i=0; i<dim; ++i){
         j = bit_reversal(i,std::log2(dim));
-        y[j] = x[i];
+        y(j) = x(i);
 
     }
     return y;
 }
 
+
 void
 FFT_2D::iterative_solve(){
 
-    temp_input.resize(N);
+    std::cout << "Starting fft iterative" << std::endl;
 
+    cVector input_vector;
+    input_vector.resize(N);
+
+    iterative_solution.resize(N,N);
+
+
+    #pragma omp parallel for shared(input, iterative_solution) firstprivate(input_vector) num_threads(2)
     for (std::size_t i = 0; i < N; i++)
     {
-        std::copy(input[i].begin(), input[i].end(), temp_input.begin());
-        iterative_solve_wrapped();
-        std::copy(temp_solution.begin(), temp_solution.end(), iterative_solution[i].begin());
+        cVector input_vector = input.row(i);
+        iterative_solution.row(i) = iterative_solve_wrapped(input_vector);
     }
 
-    for (std::size_t i = 0; i < N; i++)
-        for (std::size_t c = 0; c < N; c++)
-            iterative_solution[i][c] = 1/Nd * iterative_solution[i][c];
-
-
+    #pragma omp parallel for shared(input, iterative_solution) firstprivate(input_vector) num_threads(2)
     for (std::size_t i = 0; i < N; i++)
     {
-        for (std::size_t c = 0; c < N; c++)
-            temp_input[c] = iterative_solution[c][i];
-        iterative_solve_wrapped();
-        for (std::size_t c = 0; c < N; c++)
-            iterative_solution[c][i] = 1/Nd * temp_solution[c];
+        cVector input_vector = input.col(i);
+        iterative_solution.col(i) = iterative_solve_wrapped(input_vector);
     }
-        
+     
 }
+
 
 void
 FFT_2D::iterative_solve_wrapped(){
@@ -117,34 +109,91 @@ FFT_2D::iterative_solve_wrapped(){
     }
 }
 
+
+cVector
+FFT_2D::iterative_solve_wrapped(cVector x){
+    Complex wd, w, o, p;
+    Complex im = {0.0, 1.0};
+
+    std::cout << "Iterative fft" << std::endl;
+
+    //Compute bit reversal
+    std::cout << "Bit Reversal" << std::endl;
+    std::cout << "Thread: " << omp_get_thread_num() << " Vector size " << x.size() << std::endl;
+    x = vector_reversal(x, N);
+
+    unsigned int steps = std::log2(N);
+
+    // Iterate Steps
+    std::cout << "Computation" << std::endl;
+    for (int i = 1; i <= steps; i++)
+    {
+        auto power = std::pow(2,i);
+        // Calculate primitive root w
+        wd = std::exp(-2.0*pi*im/power);
+        w = {1.0,0.0};
+        // Iterate inside even/odd vectors
+        for (int j = 0; j < power/2; j++) // j = exponent of w
+        {
+            for (int k = j; k < N; k+=power)
+            {
+                o = w * x.coeffRef(k + power/2);
+                p = x.coeffRef(k); 
+                x.coeffRef(k) = p + o;
+                x.coeffRef(k + power/2) = p - o;
+            }
+            w *= wd;
+        }
+
+    }
+    std::cout << "end" << std::endl;
+    return  x;
+
+}
+
 void
 FFT_2D::parallel_solve(){
 
     const auto t0 = high_resolution_clock::now();
 
-    temp_input.resize(N);
+    std::cout << "Starting fft parallel on rows" << std::endl;
 
+    cVector input_vector;
+    input_vector.resize(N);
+
+    parallel_solution.resize(N,N);
+
+
+    #pragma omp parallel for shared(input, parallel_solution) firstprivate(input_vector) num_threads(6)
     for (std::size_t i = 0; i < N; i++)
     {
-        std::copy(input[i].begin(), input[i].end(), temp_input.begin());
-        parallel_solve_wrapped();
-        std::copy(temp_solution.begin(), temp_solution.end(), iterative_solution[i].begin());
+        std::cout << "Thread: " << omp_get_thread_num() << " Row: " << i << std::endl;
+        cVector input_vector = input.row(i);
+        std::cout << "Thread: " << omp_get_thread_num() << " End fft on row: " << i << std::endl;
+        parallel_solution.row(i) = iterative_solve_wrapped(input_vector);
+        std::cout << "Thread: " << omp_get_thread_num() << " End copy" << std::endl;
     }
 
+    std::cout << "Starting fft parallel on columns" << std::endl;
+
+    #pragma omp parallel for shared(input, parallel_solution) firstprivate(input_vector) num_threads(6)
     for (std::size_t i = 0; i < N; i++)
     {
-        for (std::size_t c = 0; c < N; c++)
-            temp_input[c] = parallel_solution[c][i];
-        parallel_solve_wrapped();
-        for (std::size_t c = 0; c < N; c++)
-            parallel_solution[c][i] = 1/Nd * temp_solution[c];
+        std::cout << "Thread: " << omp_get_thread_num() << " Row: " << i << std::endl;
+        cVector input_vector = input.col(i);
+        std::cout << "Thread: " << omp_get_thread_num() << " End fft on row: " << i << std::endl;
+        parallel_solution.col(i) = iterative_solve_wrapped(input_vector);
+        std::cout << "Thread: " << omp_get_thread_num() << " End copy" << std::endl;
     }
-
+    
     const auto t1 = high_resolution_clock::now();
     time_parallel =  duration_cast<milliseconds>(t1 - t0).count();
+
+    std::cout << "Done computation" << std::endl;
         
 }
 
+/*
 void
 FFT_2D::parallel_solve_wrapped(){
 
@@ -253,6 +302,8 @@ FFT_2D::parallel_solve_wrapped(){
 
     std::cout << "Thread: " << mpi_rank << " DONE" << std::endl;
 }
+
+*/
 
 void
 FFT_2D::evaluate_time_and_error(){
