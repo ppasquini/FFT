@@ -2,6 +2,12 @@
 #include <mpi.h>
 #include <chrono>
 #include <omp.h>
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_ONLY_PNG
+#include "stb_image.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+
 
 using namespace std::chrono;
 
@@ -15,6 +21,30 @@ FFT_2D::generate_random_input(unsigned int power){
 
     std::cout << "Done loading" << std::endl;
     
+}
+
+void
+FFT_2D::load_image(){
+    std::cout << "Loading image" << std::endl;
+
+    int x,y,n;
+    x = 512;
+    y = 512;
+    n = 8;
+    unsigned char *data = stbi_load("test.png", &x, &y, &n, 1);
+
+    input.resize(x,y);
+
+    Complex num;
+
+    for(std::size_t i=0; i<y; i++){
+        for(std::size_t j=0; j<x; j++){
+            num = {static_cast<double>(data[y*i+j]), 0.0};
+            input[i,j] = num;
+        }
+    }
+
+    std::cout << "Done loading" << std::endl;
 }
 
 unsigned int 
