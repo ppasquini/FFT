@@ -13,7 +13,13 @@ class FFT_2D
         load_input();
 
         void
+        load_image();
+
+        void
         generate_random_input(unsigned int power);
+
+        void
+        image_compression(double compression);
 
         void 
         iterative_solve();
@@ -33,6 +39,9 @@ class FFT_2D
         void
         evaluate_time_and_error();
 
+        void
+        output_image();
+
     protected:
 
         unsigned int 
@@ -48,6 +57,8 @@ class FFT_2D
         double time_parallel;
 
         double time_serial;
+
+        double compression;
         
         cMatrix input;
 

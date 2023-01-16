@@ -28,10 +28,12 @@ FFT_2D::load_image(){
     std::cout << "Loading image" << std::endl;
 
     int x,y,n;
-    x = 512;
-    y = 512;
+    x = 256;
+    y = 256;
     n = 8;
     unsigned char *data = stbi_load("test.png", &x, &y, &n, 1);
+
+    N = x;
 
     input.resize(x,y);
 
@@ -40,7 +42,7 @@ FFT_2D::load_image(){
     for(std::size_t i=0; i<y; i++){
         for(std::size_t j=0; j<x; j++){
             num = {static_cast<double>(data[y*i+j]), 0.0};
-            input[i,j] = num;
+            input(i,j) = num;
         }
     }
 
@@ -143,17 +145,17 @@ FFT_2D::iterative_solve_wrapped(cVector x){
     Complex wd, w, o, p;
     Complex im = {0.0, 1.0};
 
-    std::cout << "Iterative fft" << std::endl;
+    //std::cout << "Iterative fft" << std::endl;
 
     //Compute bit reversal
-    std::cout << "Bit Reversal" << std::endl;
-    std::cout << "Thread: " << omp_get_thread_num() << " Vector size " << x.size() << std::endl;
+    //std::cout << "Bit Reversal" << std::endl;
+    //std::cout << "Thread: " << omp_get_thread_num() << " Vector size " << x.size() << std::endl;
     x = vector_reversal(x, N);
 
     unsigned int steps = std::log2(N);
 
     // Iterate Steps
-    std::cout << "Computation" << std::endl;
+    //std::cout << "Computation" << std::endl;
     for (int i = 1; i <= steps; i++)
     {
         auto power = std::pow(2,i);
@@ -174,7 +176,7 @@ FFT_2D::iterative_solve_wrapped(cVector x){
         }
 
     }
-    std::cout << "end" << std::endl;
+    //std::cout << "end" << std::endl;
     return  x;
 
 }
@@ -184,34 +186,34 @@ FFT_2D::parallel_solve(){
 
     const auto t0 = high_resolution_clock::now();
 
-    std::cout << "Starting fft parallel on rows" << std::endl;
 
     cVector input_vector;
     input_vector.resize(N);
 
     parallel_solution.resize(N,N);
 
+    std::cout << "Starting fft parallel on rows" << std::endl;
 
     #pragma omp parallel for shared(input, parallel_solution) firstprivate(input_vector) num_threads(6)
     for (std::size_t i = 0; i < N; i++)
     {
-        std::cout << "Thread: " << omp_get_thread_num() << " Row: " << i << std::endl;
+        //std::cout << "Thread: " << omp_get_thread_num() << " Row: " << i << std::endl;
         cVector input_vector = input.row(i);
-        std::cout << "Thread: " << omp_get_thread_num() << " End fft on row: " << i << std::endl;
-        parallel_solution.row(i) = iterative_solve_wrapped(input_vector);
-        std::cout << "Thread: " << omp_get_thread_num() << " End copy" << std::endl;
+        //std::cout << "Thread: " << omp_get_thread_num() << " End fft on row: " << i << std::endl;
+        parallel_solution.row(i) = 1/Nd * iterative_solve_wrapped(input_vector);
+        //std::cout << "Thread: " << omp_get_thread_num() << " End copy" << std::endl;
     }
-
+    
     std::cout << "Starting fft parallel on columns" << std::endl;
 
-    #pragma omp parallel for shared(input, parallel_solution) firstprivate(input_vector) num_threads(6)
+    #pragma omp parallel for shared(parallel_solution) firstprivate(input_vector) num_threads(6)
     for (std::size_t i = 0; i < N; i++)
     {
-        std::cout << "Thread: " << omp_get_thread_num() << " Row: " << i << std::endl;
-        cVector input_vector = input.col(i);
-        std::cout << "Thread: " << omp_get_thread_num() << " End fft on row: " << i << std::endl;
-        parallel_solution.col(i) = iterative_solve_wrapped(input_vector);
-        std::cout << "Thread: " << omp_get_thread_num() << " End copy" << std::endl;
+        //std::cout << "Thread: " << omp_get_thread_num() << " Row: " << i << std::endl;
+        cVector input_vector = parallel_solution.col(i);
+        //std::cout << "Thread: " << omp_get_thread_num() << " End fft on row: " << i << std::endl;
+        parallel_solution.col(i) = 1/Nd * iterative_solve_wrapped(input_vector);
+        //std::cout << "Thread: " << omp_get_thread_num() << " End copy" << std::endl;
     }
     
     const auto t1 = high_resolution_clock::now();
@@ -219,6 +221,45 @@ FFT_2D::parallel_solve(){
 
     std::cout << "Done computation" << std::endl;
         
+}
+
+void
+FFT_2D::image_compression(double compression){
+
+    parallel_solve();
+
+    output_image();
+
+    for(std::size_t i=0; i<N; i++){
+        std::cout << std::abs(parallel_solution(i,i)) << std::endl;
+    }
+}
+
+void
+FFT_2D::output_image(){
+
+    double max, coeff;
+    int* v;
+    v = (int*) malloc(N*N*sizeof(int));
+    
+    max = 0;
+    for(std::size_t i=0; i<N; i++){
+        for(std::size_t j=0; j<N; j++){
+            if (std::abs(parallel_solution(i,j)) > max) 
+                max = std::abs(parallel_solution(i,j));
+        }
+    }
+
+    coeff = 255.0 / max;
+
+    for(std::size_t i=0; i<N; i++){
+        for(std::size_t j=0; j<N; j++){
+            v[N*i+j] = static_cast<int>(coeff * std::abs(parallel_solution(i,j)));
+        }
+    }
+
+    stbi_write_png("output.png", N, N, 1, v, 0);
+    free(v);
 }
 
 /*

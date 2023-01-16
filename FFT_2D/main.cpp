@@ -6,11 +6,10 @@ main(int argc, char * argv[])
 {
 
     FFT_2D fft;
-    fft.generate_random_input(12);
-    fft.parallel_solve();
-    fft.evaluate_time_and_error();
+    fft.load_image();
+    fft.image_compression(0.05);
+    // fft.evaluate_time_and_error();
     
-
 
     return 0;
 
