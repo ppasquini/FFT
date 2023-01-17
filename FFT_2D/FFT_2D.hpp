@@ -80,7 +80,7 @@ class FFT_2D
         cVector temp_solution;
 
         int
-        nnz(cMatrix m);
+        zeros(cMatrix m);
 
         void
         quantization(double compression);

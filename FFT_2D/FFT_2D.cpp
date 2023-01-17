@@ -298,14 +298,14 @@ FFT_2D::image_compression(double compression){
 
     parallel_solve();
 
-    int nnz_before_compression = nnz(parallel_solution);  
+    int zeros_before_compression = zeros(parallel_solution);  
    
     quantization(compression);
 
-    int nnz_after_compression = nnz(parallel_solution);    
+    int zeros_after_compression = zeros(parallel_solution);    
 
-    std::cout << "Non zeros entrys input: " << nnz_before_compression << std::endl;
-    std::cout << "Non zeros entrys solution: " << nnz_after_compression << " with a percentage of: " << static_cast<double>(nnz_after_compression)/(N*N) * 100 << "%" << std::endl;
+    std::cout << "Zeros entrys input: " << zeros_before_compression << std::endl;
+    std::cout << "Zeros entrys solution: " << zeros_after_compression << " with a percentage of: " << static_cast<double>(zeros_after_compression)/(N*N) * 100 << "%" << std::endl;
 
     dequantization();
 
@@ -334,15 +334,6 @@ FFT_2D::quantization(double compression){
             parallel_solution(i,j) = (parallel_solution(i,j) / compression_factor);
             if(abs(parallel_solution(i,j).real()) < 1.0) parallel_solution(i, j) = {0.0, parallel_solution(i, j).imag()};
             if(abs(parallel_solution(i,j).imag()) < 1.0) parallel_solution(i, j) = {parallel_solution(i, j).real(), 0.0};  
-            
-        }
-    }
-
-    int nnz_after_compression = nnz(parallel_solution);    
-
-    for(std::size_t i=0; i<N; i++){
-        for(std::size_t j=0; j<N; j++){
-            std::cout << parallel_solution(i,j) << std::endl;
         }
     }
 
@@ -386,14 +377,14 @@ FFT_2D::output_image(){
 }
 
 int
-FFT_2D::nnz(cMatrix m){
-    int nnz = 0;
+FFT_2D::zeros(cMatrix m){
+    int zeros = 0;
     for(std::size_t i=0; i<N; i++){
         for(std::size_t j=0; j<N; j++){
-            if(parallel_solution(i, j).real() == 0.0) nnz++;
+            if(parallel_solution(i, j).real() == 0.0) zeros++;
         }
     }    
-    return nnz;
+    return zeros;
 }
 
 
