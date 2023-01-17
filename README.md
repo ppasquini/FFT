@@ -29,6 +29,18 @@ This two final functions are mainly used to the our algorithm. **Output_and_test
 Finally here there are the instructions to compile the code. In the main file the FFT_1D class is created, then it's loaded a random input and finally it is perfomed the parallel algorithm, followed by the testing function
 
 ## **FFT_2D**
+In this folder there are the files for the implementation of the class for the FFT in 2 dimensions. In this case we decided to use the **Eigen** library in odrder to deal in an efficient way  with matrixes. Here there's the library documentation: https://eigen.tuxfamily.org/dox/.
+the structer of the folder is similar to the one for the 1 dimension fft, since there is an header file for the class, a file containing its implemantation and the main file where the class is created and tested. Most functions uses the function created for the 1D FFT, but are changed in order to work with Eigen matrixes, such as **iterative_solve_wrapped** and **parallel_solve_wrapped**.
+Here below there's a little summary of the new functions created:
+### **iterative_solve**
+
+### **parallel_solve**
+
+### **Compilation**
+
+## **IMAGE_COMPRESSION**
+
+###
 
 
 

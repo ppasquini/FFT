@@ -2,11 +2,12 @@
 #include <mpi.h>
 #include <chrono>
 
+
 using namespace std::chrono;
 
 void
 FFT_1D::generate_random_input(unsigned int power){
-    std::cout << "Loading input" << std::endl;
+    std::cout << "Generating random input of dimension: " << std::pow(2, power) << std::endl;
 
     N = std::pow(2,power);
     input.resize(N);
@@ -18,6 +19,29 @@ FFT_1D::generate_random_input(unsigned int power){
 
         input[t] =  {real, imag};
     }
+}
+
+void
+FFT_1D::load_input_from_file(std::string file){
+    std::cout << "Loading input from file: " << file << std::endl;
+    std::ifstream infile(file);
+
+    std::string line;
+    while (std::getline(infile, line))
+    {
+        std::istringstream iss(line);
+        double real, imag;
+        if (!(iss >> real >> imag)) { 
+            std::cout << "Error loading" << std::endl;
+            break; 
+        } // error
+
+        input.push_back({real, imag});
+    }
+
+    N = input.size();
+
+    infile.close();
 }
 
 void
@@ -264,6 +288,48 @@ FFT_1D::parallel_solve(){
     std::cout << "Thread: " << mpi_rank << " DONE" << std::endl;
 }
 
+cVector
+FFT_1D::inverse_solve(cVector x){
+
+    unsigned int N = x.size();
+    Complex wd, w, o, p;
+    Complex im = {0.0, 1.0};
+
+    //Compute bit reversal
+    x = vector_reversal(x, N);
+
+    unsigned int steps = std::log2(N);
+
+    // Iterate Steps
+    for (int i = 1; i <= steps; i++)
+    {
+        auto power = std::pow(2,i);
+        // Calculate primitive root w
+        wd = std::exp(2.0*pi*im/power);
+        w = {1.0,0.0};
+        // Iterate inside even/odd vectors
+        for (int j = 0; j < power/2; j++) // j = exponent of w
+        {
+            for (int k = j; k < N; k+=power)
+            {
+                o = w * x[k + power/2];
+                p = x[k]; 
+                x[k] = p + o;
+                x[k + power/2] = p - o;
+            }
+            w *= wd;
+        }
+    }
+
+    for(int index = 0; index < N; ++index){
+        x[index] /= N;
+    }
+
+    return x;
+}
+
+
+
 void
 FFT_1D::test(){
     std::cout << "=================================" << std::endl;
@@ -324,12 +390,34 @@ FFT_1D::evaluate_time_and_error(){
     std::cout << "Time gained: "<< difference << " ms" << std::endl;
 
     std::cout << "=================================" << std::endl;
-    std::cout << "Error Evaluation" <<std::endl << "Compared with best serial implementation(iterative): " << std::endl;
+    std::cout << "Error Evaluation" <<std::endl << "Inverse fft of the parallel solution compared with the initial input " << std::endl;
+
+    cVector inverse_solution = inverse_solve(parallel_solution);
+    double max_error = 0;
+    for (std::size_t i=0; i<N; i++)
+    {
+        double error = std::abs(inverse_solution[i] - input[i]);
+        if(error > max_error) max_error = error;
+    }    
+    std::cout << "Max error among all the elements: " << max_error << std::endl;
 
     //TODO: COMPLETE ERROR COMPUTATION
     //double relative_error = std::abs(parallel_solution. - iterative_solution)/std::abs(iterative_solution);
 
     //std::cout << "Relative error: " << relative_error << std::endl;
+}
+
+void
+FFT_1D::save_output_in_file(){
+    std::cout << "Writing in output in file output.txt" << std::endl
+    std::ofstream file;
+    file.open("output.txt");
+
+    for(size_t i=0; i < N; i++){
+        file << parallel_solution[i].real() << " " << parallel_solution[i].imag() << std::endl;
+    }
+
+    file.close();
 }
 
 

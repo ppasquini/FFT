@@ -10,7 +10,7 @@ class FFT_1D
         FFT_1D(){}
 
         void 
-        load_input();
+        load_input_from_file(std::string file);
 
         void
         generate_random_input(unsigned int power);
@@ -27,6 +27,9 @@ class FFT_1D
         void
         parallel_solve();
 
+        cVector
+        inverse_solve(cVector x);
+
         void
         test();
 
@@ -35,6 +38,9 @@ class FFT_1D
 
         void
         evaluate_time_and_error();
+
+        void
+        save_output_in_file();
 
     protected:
 

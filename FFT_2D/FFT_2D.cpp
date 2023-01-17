@@ -24,14 +24,14 @@ FFT_2D::generate_random_input(unsigned int power){
 }
 
 void
-FFT_2D::load_image(){
+FFT_2D::load_image(const char* file_path){
     std::cout << "Loading image" << std::endl;
 
     int x,y,n;
     x = 1024;
     y = 1024;
     n = 8;
-    unsigned char *data = stbi_load("test.png", &x, &y, &n, 1);
+    unsigned char *data = stbi_load(file_path, &x, &y, &n, 1);
 
     N = x;
 

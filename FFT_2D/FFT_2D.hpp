@@ -9,11 +9,8 @@ class FFT_2D
 
         FFT_2D(){}
 
-        void 
-        load_input();
-
         void
-        load_image();
+        load_image(const char* file_path);
 
         void
         generate_random_input(unsigned int power);
