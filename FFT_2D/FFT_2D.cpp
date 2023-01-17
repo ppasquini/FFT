@@ -200,7 +200,7 @@ FFT_2D::parallel_solve(){
         //std::cout << "Thread: " << omp_get_thread_num() << " Row: " << i << std::endl;
         cVector input_vector = input.row(i);
         //std::cout << "Thread: " << omp_get_thread_num() << " End fft on row: " << i << std::endl;
-        parallel_solution.row(i) = 1/Nd * iterative_solve_wrapped(input_vector);
+        parallel_solution.row(i) = iterative_solve_wrapped(input_vector);
         //std::cout << "Thread: " << omp_get_thread_num() << " End copy" << std::endl;
     }
     
@@ -212,7 +212,7 @@ FFT_2D::parallel_solve(){
         //std::cout << "Thread: " << omp_get_thread_num() << " Row: " << i << std::endl;
         cVector input_vector = parallel_solution.col(i);
         //std::cout << "Thread: " << omp_get_thread_num() << " End fft on row: " << i << std::endl;
-        parallel_solution.col(i) = 1/Nd * iterative_solve_wrapped(input_vector);
+        parallel_solution.col(i) = iterative_solve_wrapped(input_vector);
         //std::cout << "Thread: " << omp_get_thread_num() << " End copy" << std::endl;
     }
     
@@ -224,23 +224,96 @@ FFT_2D::parallel_solve(){
 }
 
 void
+FFT_2D::inverse_fft(){
+
+    cVector input_vector;
+
+    std::cout << "Starting fft parallel on rows" << std::endl;
+
+    #pragma omp parallel for shared(parallel_solution) firstprivate(input_vector) num_threads(6)
+    for (std::size_t i = 0; i < N; i++)
+    {
+        //std::cout << "Thread: " << omp_get_thread_num() << " Row: " << i << std::endl;
+        cVector input_vector = parallel_solution.row(i);
+        //std::cout << "Thread: " << omp_get_thread_num() << " End fft on row: " << i << std::endl;
+        parallel_solution.row(i) = inverse_solve(input_vector);
+        //std::cout << "Thread: " << omp_get_thread_num() << " End copy" << std::endl;
+    }
+    
+    std::cout << "Starting fft parallel on columns" << std::endl;
+
+    #pragma omp parallel for shared(parallel_solution) firstprivate(input_vector) num_threads(6)
+    for (std::size_t i = 0; i < N; i++)
+    {
+        //std::cout << "Thread: " << omp_get_thread_num() << " Row: " << i << std::endl;
+        cVector input_vector = parallel_solution.col(i);
+        //std::cout << "Thread: " << omp_get_thread_num() << " End fft on row: " << i << std::endl;
+        parallel_solution.col(i) = inverse_solve(input_vector);
+        //std::cout << "Thread: " << omp_get_thread_num() << " End copy" << std::endl;
+    }
+
+    std::cout << "Done computation" << std::endl;
+
+}
+
+cVector
+FFT_2D::inverse_solve(cVector x){
+
+    Complex wd, w, o, p;
+    Complex im = {0.0, 1.0};
+
+    x = vector_reversal(x, N);
+
+    unsigned int steps = std::log2(N);
+
+    // Iterate Steps
+    //std::cout << "Computation" << std::endl;
+    for (int i = 1; i <= steps; i++)
+    {
+        auto power = std::pow(2,i);
+        // Calculate primitive root w
+        wd = std::exp(2.0*pi*im/power);
+        w = {1.0,0.0};
+        // Iterate inside even/odd vectors
+        for (int j = 0; j < power/2; j++) // j = exponent of w
+        {
+            for (int k = j; k < N; k+=power)
+            {
+                o = w * x.coeffRef(k + power/2);
+                p = x.coeffRef(k); 
+                x.coeffRef(k) = p + o;
+                x.coeffRef(k + power/2) = p - o;
+            }
+            w *= wd;
+        }
+
+    }
+    //std::cout << "end" << std::endl;
+    return  x;
+
+}
+
+void
 FFT_2D::image_compression(double compression){
 
     parallel_solve();
 
+    parallel_solution = 1/Nd * parallel_solution;
+
+    inverse_fft();
+
+    parallel_solution = 1/Nd * parallel_solution;
+
     output_image();
 
-    for(std::size_t i=0; i<N; i++){
-        std::cout << std::abs(parallel_solution(i,i)) << std::endl;
-    }
 }
 
 void
 FFT_2D::output_image(){
 
     double max, coeff;
-    int* v;
-    v = (int*) malloc(N*N*sizeof(int));
+    char* v;
+    v = (char*) malloc(N*N*sizeof(char));
     
     max = 0;
     for(std::size_t i=0; i<N; i++){
@@ -251,10 +324,10 @@ FFT_2D::output_image(){
     }
 
     coeff = 255.0 / max;
-
+    
     for(std::size_t i=0; i<N; i++){
         for(std::size_t j=0; j<N; j++){
-            v[N*i+j] = static_cast<int>(coeff * std::abs(parallel_solution(i,j)));
+            v[N*i+j] = static_cast<char>(coeff * std::abs(parallel_solution(i,j)));
         }
     }
 
