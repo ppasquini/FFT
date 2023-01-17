@@ -37,6 +37,12 @@ class FFT_2D
         parallel_solve_wrapped();
 
         void
+        inverse_fft();
+
+        cVector
+        inverse_solve(cVector x);
+
+        void
         evaluate_time_and_error();
 
         void
