@@ -28,8 +28,8 @@ FFT_2D::load_image(){
     std::cout << "Loading image" << std::endl;
 
     int x,y,n;
-    x = 256;
-    y = 256;
+    x = 1024;
+    y = 1024;
     n = 8;
     unsigned char *data = stbi_load("test.png", &x, &y, &n, 1);
 
@@ -320,7 +320,8 @@ FFT_2D::image_compression(double compression){
 void
 FFT_2D::quantization(double compression){
 
-    double sum = 0;
+    compression = compression / (1.0 - 0.8 * compression);
+    double sum = 0.0;
     for(std::size_t i=0; i<N; i++){
         for(std::size_t j=0; j<N; j++){
             sum += std::abs((parallel_solution(i,j)));
@@ -332,8 +333,7 @@ FFT_2D::quantization(double compression){
     for(std::size_t i=0; i<N; i++){ 
         for(std::size_t j=0; j<N; j++){
             parallel_solution(i,j) = (parallel_solution(i,j) / compression_factor);
-            if(abs(parallel_solution(i,j).real()) < 1.0) parallel_solution(i, j) = {0.0, parallel_solution(i, j).imag()};
-            if(abs(parallel_solution(i,j).imag()) < 1.0) parallel_solution(i, j) = {parallel_solution(i, j).real(), 0.0};  
+            if(abs(parallel_solution(i,j)) < 1.0) parallel_solution(i, j) = {0.0, 0.0};  
         }
     }
 

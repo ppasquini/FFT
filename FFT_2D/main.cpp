@@ -7,7 +7,7 @@ main(int argc, char * argv[])
 
     FFT_2D fft;
     fft.load_image();
-    fft.image_compression(0.30);
+    fft.image_compression(0.5);
     // fft.evaluate_time_and_error();
     
 
