@@ -13,13 +13,22 @@ class FFT_2D
         load_input();
 
         void
+        load_image();
+
+        void
         generate_random_input(unsigned int power);
+
+        void
+        image_compression(double compression);
 
         void 
         iterative_solve();
 
         void
         iterative_solve_wrapped();
+
+        cVector
+        iterative_solve_wrapped(cVector x);
 
         void
         parallel_solve();
@@ -28,7 +37,17 @@ class FFT_2D
         parallel_solve_wrapped();
 
         void
+        inverse_fft();
+
+        cVector
+        inverse_solve(cVector x);
+
+        void
         evaluate_time_and_error();
+
+        void
+        output_image();
+
 
     protected:
 
@@ -45,6 +64,10 @@ class FFT_2D
         double time_parallel;
 
         double time_serial;
+
+        double compression;
+
+        double compression_factor;
         
         cMatrix input;
 
@@ -55,6 +78,15 @@ class FFT_2D
         cMatrix iterative_solution;
 
         cVector temp_solution;
+
+        int
+        zeros(cMatrix m);
+
+        void
+        quantization(double compression);
+
+        void
+        dequantization();
 
 
 };
