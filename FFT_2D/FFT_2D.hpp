@@ -48,6 +48,7 @@ class FFT_2D
         void
         output_image();
 
+
     protected:
 
         unsigned int 
@@ -65,6 +66,8 @@ class FFT_2D
         double time_serial;
 
         double compression;
+
+        double compression_factor;
         
         cMatrix input;
 
@@ -75,6 +78,15 @@ class FFT_2D
         cMatrix iterative_solution;
 
         cVector temp_solution;
+
+        int
+        nnz(cMatrix m);
+
+        void
+        quantization(double compression);
+
+        void
+        dequantization();
 
 
 };

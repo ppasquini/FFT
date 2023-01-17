@@ -298,14 +298,64 @@ FFT_2D::image_compression(double compression){
 
     parallel_solve();
 
-    parallel_solution = 1/Nd * parallel_solution;
+    int nnz_before_compression = nnz(parallel_solution);  
+   
+    quantization(compression);
+
+    int nnz_after_compression = nnz(parallel_solution);    
+
+    std::cout << "Non zeros entrys input: " << nnz_before_compression << std::endl;
+    std::cout << "Non zeros entrys solution: " << nnz_after_compression << " with a percentage of: " << static_cast<double>(nnz_after_compression)/(N*N) * 100 << "%" << std::endl;
+
+    dequantization();
 
     inverse_fft();
 
-    parallel_solution = 1/Nd * parallel_solution;
+    parallel_solution = 1/(Nd * Nd) * parallel_solution;
 
     output_image();
 
+}
+
+void
+FFT_2D::quantization(double compression){
+
+    double sum = 0;
+    for(std::size_t i=0; i<N; i++){
+        for(std::size_t j=0; j<N; j++){
+            sum += std::abs((parallel_solution(i,j)));
+        }
+    }
+
+    compression_factor = ((sum/(N*N))*(compression));
+
+    for(std::size_t i=0; i<N; i++){ 
+        for(std::size_t j=0; j<N; j++){
+            parallel_solution(i,j) = (parallel_solution(i,j) / compression_factor);
+            if(abs(parallel_solution(i,j).real()) < 1.0) parallel_solution(i, j) = {0.0, parallel_solution(i, j).imag()};
+            if(abs(parallel_solution(i,j).imag()) < 1.0) parallel_solution(i, j) = {parallel_solution(i, j).real(), 0.0};  
+            
+        }
+    }
+
+    int nnz_after_compression = nnz(parallel_solution);    
+
+    for(std::size_t i=0; i<N; i++){
+        for(std::size_t j=0; j<N; j++){
+            std::cout << parallel_solution(i,j) << std::endl;
+        }
+    }
+
+}
+
+void
+FFT_2D::dequantization(){
+
+    for(std::size_t i=0; i<N; i++){
+        for(std::size_t j=0; j<N; j++){
+            parallel_solution(i,j) = parallel_solution(i,j) * compression_factor;
+        }
+    }
 }
 
 void
@@ -334,6 +384,18 @@ FFT_2D::output_image(){
     stbi_write_png("output.png", N, N, 1, v, 0);
     free(v);
 }
+
+int
+FFT_2D::nnz(cMatrix m){
+    int nnz = 0;
+    for(std::size_t i=0; i<N; i++){
+        for(std::size_t j=0; j<N; j++){
+            if(parallel_solution(i, j).real() == 0.0) nnz++;
+        }
+    }    
+    return nnz;
+}
+
 
 /*
 void

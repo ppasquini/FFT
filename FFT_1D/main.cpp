@@ -14,7 +14,7 @@ main(int argc, char * argv[])
     fft.parallel_solve();
     MPI_Finalize();
     if(mpi_rank == 0){
-        //fft.output_and_test();
+        //fft.output_and_test(); //Only use for small input
         fft.evaluate_time_and_error();
     }
 
