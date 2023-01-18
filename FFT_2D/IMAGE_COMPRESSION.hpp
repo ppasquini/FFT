@@ -17,8 +17,14 @@ class IMAGE_COMPRESSION: protected FFT_2D
         double
         image_compression(double compression);
 
+        std::vector<double>
+        image_compression_rgb(const char* file_path, const int size, double compression);
+
         void
         image_decompression(double comp_facto);
+
+        void
+        image_decompression_rgb(int color);
 
         void
         output_image();
@@ -29,11 +35,17 @@ class IMAGE_COMPRESSION: protected FFT_2D
         void
         loadCompression(std::string file_matrix_compressed);
 
+        void
+        loadCompression_rgb(std::vector<double> comp_factor_rgb, std::vector<std::string> files_matrix_compressed);
+ 
+
     protected:
        
         double compression;
 
         double compression_factor;
+
+        std::vector<double> compression_factor_rgb;
 
         unsigned char *data;
 

@@ -79,6 +79,57 @@ IMAGE_COMPRESSION::load_image_rgb(const char* file_path, const int size, int cha
 
 }
 
+std::vector<double>
+IMAGE_COMPRESSION::image_compression_rgb(const char* file_path, const int size, double compression){
+
+    int zeros_before_compression = 0;
+    int zeros_after_compression = 0;
+
+    for(size_t color = 0; color < 3; color++){
+        std::string scolor = color==0?"r":color==1?"g":"b";
+
+        std::string file_compressed = "Matrix_compressed_" + scolor;
+        std::string file_not_compressed = "Matrix_not_compressed_" + scolor;
+       
+        Eigen::saveMarket(input, file_not_compressed);
+
+        load_image_rgb(file_path, size, color);
+
+        zeros_before_compression = parallel_solution.size() - parallel_solution.nonZeros();  
+
+        parallel_solve();
+
+        std::cout << "Starting compression" << std::endl;
+   
+        quantization(compression);
+
+        matrix_compressed = parallel_solution.sparseView();
+
+        matrix_compressed.makeCompressed();
+
+        Eigen::saveMarket(matrix_compressed, file_compressed); 
+
+        zeros_after_compression += matrix_compressed.size () - matrix_compressed.nonZeros(); 
+
+        compression_factor_rgb.push_back(compression_factor); 
+
+    }
+    parallel_solution.resize(0,0);
+
+    std::cout << "Compression done: matrix compressed saved in: Matrix_compressed" << std::endl;
+
+    std::cout << "================================" << std::endl;
+
+    int memory_saved = (zeros_after_compression - zeros_before_compression) * sizeof(Complex); 
+
+    std::cout << "Zeros entrys input: " << zeros_before_compression << std::endl;
+    std::cout << "Zeros entrys solution: " << zeros_after_compression << " with a percentage of: " << static_cast<double>(zeros_after_compression)/(3*N*N) * 100 << "% on the total number of elements" << std::endl;
+    std::cout << "Memory saved: " << memory_saved << " Bytes" << std::endl;
+    
+    return compression_factor_rgb;
+    
+}
+
 double
 IMAGE_COMPRESSION::image_compression(double compression){
 
@@ -129,6 +180,21 @@ IMAGE_COMPRESSION::image_decompression(double comp_factor){
     std::cout << "Decompression done: image saved in output.png" << std::endl;
 
     output_image();    
+}
+
+void
+IMAGE_COMPRESSION::image_decompression_rgb(int color){
+
+    std::cout << "================================" << std::endl;
+
+    std::cout << "Starting decompression" << std::endl;
+    dequantization();
+
+    inverse_fft();
+
+    std::cout << "Decompression done: image saved in output.png" << std::endl;
+
+    output_image_rgb(color);
 }
 
 void
@@ -228,4 +294,22 @@ IMAGE_COMPRESSION::loadCompression(std::string file_matrix_compressed){
     matrix_compressed.uncompress();
     parallel_solution = cMatrix(matrix_compressed);
     N = parallel_solution.innerSize();
+}
+
+void
+IMAGE_COMPRESSION::loadCompression_rgb(std::vector<double> comp_factor_rgb, std::vector<std::string> files_matrix_compressed){
+    
+    compression_factor_rgb = comp_factor_rgb;
+     
+    for(size_t color = 0; color < 3; color ++){
+
+        loadMarket(matrix_compressed, files_matrix_compressed[color]);
+        matrix_compressed.uncompress();
+        parallel_solution = cMatrix(matrix_compressed);
+        N = parallel_solution.innerSize();
+
+        compression_factor = compression_factor_rgb[color];  
+        image_decompression_rgb(color);
+    }
+
 }
