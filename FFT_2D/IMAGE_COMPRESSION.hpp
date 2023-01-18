@@ -24,6 +24,9 @@ class IMAGE_COMPRESSION: protected FFT_2D
         output_image();
 
         void
+        output_image_rgb(int channel);
+
+        void
         loadCompression(std::string file_matrix_compressed);
 
     protected:
@@ -33,6 +36,8 @@ class IMAGE_COMPRESSION: protected FFT_2D
         double compression_factor;
 
         unsigned char *data;
+
+        char *v;
 
         cSparseMatrix matrix_compressed;
 

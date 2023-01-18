@@ -14,7 +14,7 @@ IMAGE_COMPRESSION::load_image(const char* file_path, const int size){
     x = size;
     y = size;
     n = 8;
-    unsigned char *data = stbi_load(file_path, &x, &y, &n, 1);
+    data = stbi_load(file_path, &x, &y, &n, 1);
 
     N = size;
 
@@ -73,6 +73,9 @@ IMAGE_COMPRESSION::load_image_rgb(const char* file_path, const int size, int cha
     }
 
     std::cout << "Done loading" << std::endl;
+
+    if(channel == 2)
+        free(data);
 
 }
 
@@ -166,7 +169,6 @@ void
 IMAGE_COMPRESSION::output_image(){
 
     double max, coeff;
-    char* v;
     v = (char*) malloc(N*N*sizeof(char));
     
     max = 0.0;
@@ -187,6 +189,37 @@ IMAGE_COMPRESSION::output_image(){
 
     stbi_write_png("output.png", N, N, 1, v, 0);
     free(v);
+}
+
+void
+IMAGE_COMPRESSION::output_image_rgb(int channel){
+
+    if(channel == 0){
+        v = (char*) malloc(N*N*sizeof(char));
+    }
+
+    double max, coeff;
+    
+    max = 0.0;
+    for(std::size_t i=0; i<N; i++){
+        for(std::size_t j=0; j<N; j++){
+            if (std::abs(parallel_solution(i,j)) > max) 
+                max = std::abs(parallel_solution(i,j));
+        }
+    }
+    
+    coeff = 255.0 / max;
+    
+    for(std::size_t i=0; i<N; i++){
+        for(std::size_t j=0; j<N; j++){
+            v[3*N*i+3*j+channel] = static_cast<char>(coeff * std::abs(parallel_solution(i,j)));
+        }
+    }
+
+    if(channel == 2){
+        stbi_write_png("output.png", N, N, 3, v, 0);
+        free(v);
+    }
 }
 
 void
