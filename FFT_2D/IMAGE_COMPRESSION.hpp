@@ -11,6 +11,9 @@ class IMAGE_COMPRESSION: protected FFT_2D
         void
         load_image(const char* file_path, const int size);
 
+        void
+        load_image_rgb(const char* file_path, const int size, int channel);
+
         double
         image_compression(double compression);
 

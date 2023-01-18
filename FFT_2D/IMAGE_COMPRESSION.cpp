@@ -32,6 +32,50 @@ IMAGE_COMPRESSION::load_image(const char* file_path, const int size){
     std::cout << "Done loading" << std::endl;
 }
 
+void
+IMAGE_COMPRESSION::load_image(const char* file_path, const int size, int channel){
+
+    std::cout << "Loading the ";
+    switch (channel)
+    {
+    case 0:
+        std::cout << "red";
+        break;
+    case 1:
+        std::cout << "green";
+        break;
+    case 2
+        std::cout << "blue";
+        break;
+    default:
+        break;
+    }
+    std::cout << " channel" << std::endl;
+
+    int x, y;
+    x = size;
+    y = size;
+    N = size;
+
+    if(channel == 0){
+        int n = 8;
+        unsigned char *data = stbi_load(file_path, &x, &y, &n, 3);
+        input.resize(x,y);
+    }
+
+    Complex num;
+
+    for(std::size_t i=0; i<y; i++){
+        for(std::size_t j=0; j<x; j++){
+            num = {static_cast<double>(data[3*y*i+j*3+channel]), 0.0};
+            input(i,j) = num;
+        }
+    }
+
+    std::cout << "Done loading" << std::endl;
+
+}
+
 double
 IMAGE_COMPRESSION::image_compression(double compression){
 
@@ -127,14 +171,14 @@ IMAGE_COMPRESSION::output_image(){
     char* v;
     v = (char*) malloc(N*N*sizeof(char));
     
-    max = 0;
+    max = 0.0;
     for(std::size_t i=0; i<N; i++){
         for(std::size_t j=0; j<N; j++){
             if (std::abs(parallel_solution(i,j)) > max) 
                 max = std::abs(parallel_solution(i,j));
         }
     }
-
+    
     coeff = 255.0 / max;
     
     for(std::size_t i=0; i<N; i++){
