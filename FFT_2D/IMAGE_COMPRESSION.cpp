@@ -7,16 +7,16 @@
 #include <unsupported/Eigen/SparseExtra>
 
 void
-IMAGE_COMPRESSION::load_image(const char* file_path){
+IMAGE_COMPRESSION::load_image(const char* file_path, const int size){
     std::cout << "Loading image" << std::endl;
 
     int x,y,n;
-    x = 1024;
-    y = 1024;
+    x = size;
+    y = size;
     n = 8;
     unsigned char *data = stbi_load(file_path, &x, &y, &n, 1);
 
-    N = x;
+    N = size;
 
     input.resize(x,y);
 

@@ -9,7 +9,7 @@ class IMAGE_COMPRESSION: protected FFT_2D
         IMAGE_COMPRESSION(){}
 
         void
-        load_image(const char* file_path);
+        load_image(const char* file_path, const int size);
 
         double
         image_compression(double compression);
