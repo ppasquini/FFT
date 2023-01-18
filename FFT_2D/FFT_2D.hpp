@@ -10,13 +10,7 @@ class FFT_2D
         FFT_2D(){}
 
         void
-        load_image(const char* file_path);
-
-        void
         generate_random_input(unsigned int power);
-
-        void
-        image_compression(double compression);
 
         void 
         iterative_solve();
@@ -41,10 +35,6 @@ class FFT_2D
 
         void
         evaluate_time_and_error();
-
-        void
-        output_image();
-
 
     protected:
 
