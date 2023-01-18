@@ -11,12 +11,17 @@ class IMAGE_COMPRESSION: protected FFT_2D
         void
         load_image(const char* file_path);
 
-        void
+        double
         image_compression(double compression);
+
+        void
+        image_decompression(double comp_facto);
 
         void
         output_image();
 
+        void
+        loadCompression(std::string file_matrix_compressed);
 
     protected:
        
@@ -24,8 +29,7 @@ class IMAGE_COMPRESSION: protected FFT_2D
 
         double compression_factor;
 
-        int
-        zeros(cMatrix m);
+        cSparseMatrix matrix_compressed;
 
         void
         quantization(double compression);

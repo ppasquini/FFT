@@ -113,11 +113,8 @@ FFT_2D::iterative_solve_wrapped(cVector x){
     Complex wd, w, o, p;
     Complex im = {0.0, 1.0};
 
-    //std::cout << "Iterative fft" << std::endl;
 
     //Compute bit reversal
-    //std::cout << "Bit Reversal" << std::endl;
-    //std::cout << "Thread: " << omp_get_thread_num() << " Vector size " << x.size() << std::endl;
     x = vector_reversal(x, N);
 
     unsigned int steps = std::log2(N);
@@ -144,7 +141,6 @@ FFT_2D::iterative_solve_wrapped(cVector x){
         }
 
     }
-    //std::cout << "end" << std::endl;
     return  x;
 
 }
@@ -165,11 +161,8 @@ FFT_2D::parallel_solve(){
     #pragma omp parallel for shared(input, parallel_solution) firstprivate(input_vector) num_threads(6)
     for (std::size_t i = 0; i < N; i++)
     {
-        //std::cout << "Thread: " << omp_get_thread_num() << " Row: " << i << std::endl;
         input_vector = input.row(i);
-        //std::cout << "Thread: " << omp_get_thread_num() << " End fft on row: " << i << std::endl;
         parallel_solution.row(i) = iterative_solve_wrapped(input_vector);
-        //std::cout << "Thread: " << omp_get_thread_num() << " End copy" << std::endl;
     }
     
     std::cout << "Starting fft parallel on columns" << std::endl;
@@ -177,11 +170,8 @@ FFT_2D::parallel_solve(){
     #pragma omp parallel for shared(parallel_solution) firstprivate(input_vector) num_threads(6)
     for (std::size_t i = 0; i < N; i++)
     {
-        //std::cout << "Thread: " << omp_get_thread_num() << " Row: " << i << std::endl;
         input_vector = parallel_solution.col(i);
-        //std::cout << "Thread: " << omp_get_thread_num() << " End fft on row: " << i << std::endl;
         parallel_solution.col(i) = iterative_solve_wrapped(input_vector);
-        //std::cout << "Thread: " << omp_get_thread_num() << " End copy" << std::endl;
     }
     
     const auto t1 = high_resolution_clock::now();
@@ -196,28 +186,22 @@ FFT_2D::inverse_fft(){
 
     cVector input_vector;
 
-    std::cout << "Starting fft parallel on rows" << std::endl;
+    std::cout << "Starting inverse fft parallel on rows" << std::endl;
 
     #pragma omp parallel for shared(parallel_solution) firstprivate(input_vector) num_threads(6)
     for (std::size_t i = 0; i < N; i++)
     {
-        //std::cout << "Thread: " << omp_get_thread_num() << " Row: " << i << std::endl;
         input_vector = parallel_solution.row(i);
-        //std::cout << "Thread: " << omp_get_thread_num() << " End fft on row: " << i << std::endl;
         parallel_solution.row(i) = inverse_solve(input_vector);
-        //std::cout << "Thread: " << omp_get_thread_num() << " End copy" << std::endl;
     }
     
-    std::cout << "Starting fft parallel on columns" << std::endl;
+    std::cout << "Starting inverse fft parallel on columns" << std::endl;
 
     #pragma omp parallel for shared(parallel_solution) firstprivate(input_vector) num_threads(6)
     for (std::size_t i = 0; i < N; i++)
     {
-        //std::cout << "Thread: " << omp_get_thread_num() << " Row: " << i << std::endl;
         input_vector = parallel_solution.col(i);
-        //std::cout << "Thread: " << omp_get_thread_num() << " End fft on row: " << i << std::endl;
         parallel_solution.col(i) = inverse_solve(input_vector);
-        //std::cout << "Thread: " << omp_get_thread_num() << " End copy" << std::endl;
     }
 
     std::cout << "Done computation" << std::endl;

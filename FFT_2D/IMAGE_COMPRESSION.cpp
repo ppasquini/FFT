@@ -4,6 +4,7 @@
 #include "stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
+#include <unsupported/Eigen/SparseExtra>
 
 void
 IMAGE_COMPRESSION::load_image(const char* file_path){
@@ -31,19 +32,48 @@ IMAGE_COMPRESSION::load_image(const char* file_path){
     std::cout << "Done loading" << std::endl;
 }
 
-void
+double
 IMAGE_COMPRESSION::image_compression(double compression){
+
+    Eigen::saveMarket(input, "Matrix_not_compressed");
 
     parallel_solve();
 
-    int zeros_before_compression = zeros(parallel_solution);  
+    int zeros_before_compression = parallel_solution.size() - parallel_solution.nonZeros();  
+
+    std::cout << "Starting compression" << std::endl;
    
     quantization(compression);
 
-    int zeros_after_compression = zeros(parallel_solution);    
+    matrix_compressed = parallel_solution.sparseView();
+    matrix_compressed.makeCompressed();
+    Eigen::saveMarket(matrix_compressed, "Matrix_compressed"); 
+    parallel_solution.resize(0,0);
+
+    std::cout << "Compression done: matrix compressed saved in: Matrix_compressed" << std::endl;
+
+    std::cout << "================================" << std::endl;
+
+    int zeros_after_compression = matrix_compressed.size () - matrix_compressed.nonZeros();  
+
+    int memory_saved = (zeros_after_compression - zeros_before_compression) * sizeof(Complex); 
 
     std::cout << "Zeros entrys input: " << zeros_before_compression << std::endl;
-    std::cout << "Zeros entrys solution: " << zeros_after_compression << " with a percentage of: " << static_cast<double>(zeros_after_compression)/(N*N) * 100 << "%" << std::endl;
+    std::cout << "Zeros entrys solution: " << zeros_after_compression << " with a percentage of: " << static_cast<double>(zeros_after_compression)/(N*N) * 100 << "% on the total number of elements" << std::endl;
+    std::cout << "Memory saved: " << memory_saved << " Bytes" << std::endl;
+    
+    return compression_factor;
+    
+}
+
+void
+IMAGE_COMPRESSION::image_decompression(double comp_factor){
+
+    std::cout << "================================" << std::endl;
+
+    std::cout << "Starting decompression" << std::endl;
+
+    compression_factor = comp_factor;
 
     dequantization();
 
@@ -51,8 +81,9 @@ IMAGE_COMPRESSION::image_compression(double compression){
 
     parallel_solution = 1/(Nd * Nd) * parallel_solution;
 
-    output_image();
+    std::cout << "Decompression done: image saved in output.png" << std::endl;
 
+    output_image();    
 }
 
 void
@@ -68,10 +99,12 @@ IMAGE_COMPRESSION::quantization(double compression){
 
     compression_factor = ((sum/(N*N))*(compression));
 
+
+
     for(std::size_t i=0; i<N; i++){ 
         for(std::size_t j=0; j<N; j++){
             parallel_solution(i,j) = (parallel_solution(i,j) / compression_factor);
-            if(abs(parallel_solution(i,j)) < 1.0) parallel_solution(i, j) = {0.0, 0.0};  
+            if(abs(parallel_solution(i,j)) < 1.0) parallel_solution(i, j) = {0.0, 0.0};
         }
     }
 
@@ -114,13 +147,10 @@ IMAGE_COMPRESSION::output_image(){
     free(v);
 }
 
-int
-IMAGE_COMPRESSION::zeros(cMatrix m){
-    int zeros = 0;
-    for(std::size_t i=0; i<N; i++){
-        for(std::size_t j=0; j<N; j++){
-            if(parallel_solution(i, j).real() == 0.0) zeros++;
-        }
-    }    
-    return zeros;
+void
+IMAGE_COMPRESSION::loadCompression(std::string file_matrix_compressed){
+    loadMarket(matrix_compressed, file_matrix_compressed);
+    matrix_compressed.uncompress();
+    parallel_solution = cMatrix(matrix_compressed);
+    N = parallel_solution.innerSize();
 }

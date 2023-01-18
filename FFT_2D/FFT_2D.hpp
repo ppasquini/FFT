@@ -61,10 +61,6 @@ class FFT_2D
         double time_parallel;
 
         double time_serial;
-
-        double compression;
-
-        double compression_factor;
         
         cMatrix input;
 
@@ -75,15 +71,5 @@ class FFT_2D
         cMatrix iterative_solution;
 
         cVector temp_solution;
-
-        int
-        zeros(cMatrix m);
-
-        void
-        quantization(double compression);
-
-        void
-        dequantization();
-
 
 };
