@@ -400,11 +400,6 @@ FFT_1D::evaluate_time_and_error(){
         if(error > max_error) max_error = error;
     }    
     std::cout << "Max error among all the elements: " << max_error << std::endl;
-
-    //TODO: COMPLETE ERROR COMPUTATION
-    //double relative_error = std::abs(parallel_solution. - iterative_solution)/std::abs(iterative_solution);
-
-    //std::cout << "Relative error: " << relative_error << std::endl;
 }
 
 void
