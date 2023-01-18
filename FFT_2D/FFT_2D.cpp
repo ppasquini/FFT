@@ -166,7 +166,7 @@ FFT_2D::parallel_solve(){
     for (std::size_t i = 0; i < N; i++)
     {
         //std::cout << "Thread: " << omp_get_thread_num() << " Row: " << i << std::endl;
-        cVector input_vector = input.row(i);
+        input_vector = input.row(i);
         //std::cout << "Thread: " << omp_get_thread_num() << " End fft on row: " << i << std::endl;
         parallel_solution.row(i) = iterative_solve_wrapped(input_vector);
         //std::cout << "Thread: " << omp_get_thread_num() << " End copy" << std::endl;
@@ -178,7 +178,7 @@ FFT_2D::parallel_solve(){
     for (std::size_t i = 0; i < N; i++)
     {
         //std::cout << "Thread: " << omp_get_thread_num() << " Row: " << i << std::endl;
-        cVector input_vector = parallel_solution.col(i);
+        input_vector = parallel_solution.col(i);
         //std::cout << "Thread: " << omp_get_thread_num() << " End fft on row: " << i << std::endl;
         parallel_solution.col(i) = iterative_solve_wrapped(input_vector);
         //std::cout << "Thread: " << omp_get_thread_num() << " End copy" << std::endl;
@@ -202,7 +202,7 @@ FFT_2D::inverse_fft(){
     for (std::size_t i = 0; i < N; i++)
     {
         //std::cout << "Thread: " << omp_get_thread_num() << " Row: " << i << std::endl;
-        cVector input_vector = parallel_solution.row(i);
+        input_vector = parallel_solution.row(i);
         //std::cout << "Thread: " << omp_get_thread_num() << " End fft on row: " << i << std::endl;
         parallel_solution.row(i) = inverse_solve(input_vector);
         //std::cout << "Thread: " << omp_get_thread_num() << " End copy" << std::endl;
@@ -214,7 +214,7 @@ FFT_2D::inverse_fft(){
     for (std::size_t i = 0; i < N; i++)
     {
         //std::cout << "Thread: " << omp_get_thread_num() << " Row: " << i << std::endl;
-        cVector input_vector = parallel_solution.col(i);
+        input_vector = parallel_solution.col(i);
         //std::cout << "Thread: " << omp_get_thread_num() << " End fft on row: " << i << std::endl;
         parallel_solution.col(i) = inverse_solve(input_vector);
         //std::cout << "Thread: " << omp_get_thread_num() << " End copy" << std::endl;
