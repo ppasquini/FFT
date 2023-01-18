@@ -7,12 +7,13 @@ main(int argc, char * argv[])
 {
 
     IMAGE_COMPRESSION compressor;
-    if(argc > 2){
+    IMAGE_COMPRESSION new_compressor;
+    if(argc > 3){
+    
         compressor.load_image(argv[1], atoi(argv[2]));
         float compression = atof(argv[3]);
         double compression_factor = compressor.image_compression(compression);
-        IMAGE_COMPRESSION new_compressor;
-        compressor.loadCompression("Matrix_compressed");
+        compressor.loadCompression("Matrix_compressed.txt");
         compressor.image_decompression(compression_factor);
     }
     else{

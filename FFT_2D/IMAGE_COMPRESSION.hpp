@@ -32,6 +32,8 @@ class IMAGE_COMPRESSION: protected FFT_2D
 
         double compression_factor;
 
+        unsigned char *data;
+
         cSparseMatrix matrix_compressed;
 
         void

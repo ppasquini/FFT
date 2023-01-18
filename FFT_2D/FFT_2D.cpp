@@ -204,6 +204,8 @@ FFT_2D::inverse_fft(){
         parallel_solution.col(i) = inverse_solve(input_vector);
     }
 
+    parallel_solution = 1/(Nd * Nd) * parallel_solution;
+
     std::cout << "Done computation" << std::endl;
 
 }

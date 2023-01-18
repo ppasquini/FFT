@@ -33,7 +33,7 @@ IMAGE_COMPRESSION::load_image(const char* file_path, const int size){
 }
 
 void
-IMAGE_COMPRESSION::load_image(const char* file_path, const int size, int channel){
+IMAGE_COMPRESSION::load_image_rgb(const char* file_path, const int size, int channel){
 
     std::cout << "Loading the ";
     switch (channel)
@@ -44,7 +44,7 @@ IMAGE_COMPRESSION::load_image(const char* file_path, const int size, int channel
     case 1:
         std::cout << "green";
         break;
-    case 2
+    case 2:
         std::cout << "blue";
         break;
     default:
@@ -59,7 +59,7 @@ IMAGE_COMPRESSION::load_image(const char* file_path, const int size, int channel
 
     if(channel == 0){
         int n = 8;
-        unsigned char *data = stbi_load(file_path, &x, &y, &n, 3);
+        data = stbi_load(file_path, &x, &y, &n, 3);
         input.resize(x,y);
     }
 
@@ -122,8 +122,6 @@ IMAGE_COMPRESSION::image_decompression(double comp_factor){
     dequantization();
 
     inverse_fft();
-
-    parallel_solution = 1/(Nd * Nd) * parallel_solution;
 
     std::cout << "Decompression done: image saved in output.png" << std::endl;
 
