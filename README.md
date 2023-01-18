@@ -79,7 +79,7 @@ while to run in with a given input from a text file (Warning: dimension must be 
 
 ## **IMAGE_COMPRESSION**
 And then at last we implemented the image compression. The class allows to load an png image using the **load_image** function, perfom a compression usign the 2D FFT and a wuantization function and then save the result as a Sparse compressed matrix in the **Matrix_compressed** file. The class also allows to decompress (inverse 2D FFT plus dequantization) the image starting from hte compressed file and save it as **output.png** in the same folder.
-Here below there is a summary of the main fuction used for the compression and decompression
+Here below there is a summary of the main fuction used for the compression and decompression.
 
 ### **image_compression**
 This function takes the input matrix and perfoms first the 2D FFT and then compresses the result by calling the quantization function. It then calculates the number of zero elements in the matrix before and after the compression, displays the results and the memory saved and then finally saves the matrix as Sparse and stores it in the **matrix_compressed** file. Moreover it returns the compression factor calculated by the quantization function.
@@ -88,10 +88,10 @@ This function takes the input matrix and perfoms first the 2D FFT and then compr
 The quantization basically takes all the matrix parameters and saves only the high frequency, while the low ones are set to zero. To get the high frequency it calculates a compression factor using the mean of the absolute values of the parameters multiplied by the **compression** parameter given as input on the command line; this parameter should go from 0.5 for a low compression, to 1.0 to an higher one. The matrix parameters are then divided by this compression factor, in this way all low frequency will be less then one. The function finally calculates the absolute value of the matrix parameters and sets to zero if they are less then 1 (low frequency) in order to get as much zero entries as possible to save memory.
 
 ### **decompression**
-This function is the inverse of the **image_compression**, it basically performs a dequantization, then it computes the inverse 2D FFT on the result na dfinally it save the image in the **outpu.png** file.
+This function is the inverse of the **image_compression**, it basically performs a dequantization, then it computes the inverse 2D FFT on the result and finally it saves the image in the **outpu.png** file.
 
 ### **dequantization**
-The dequantization aimply multiplies every matrix parameter by the compression_factor given by input;
+The dequantization simply multiplies every matrix parameter by the compression_factor given by input;
 
 ### **load_compression** and **load_image**
 The first function(**load_compression**) is usefull to load the compresse matrix from the file so it can be decompressed afterwards, while the second one(**load_image**) can be used to load an image from a given file and of a given dimension, both passed by command line.
