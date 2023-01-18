@@ -1,15 +1,15 @@
-#include "FFT_2D.hpp"
+#include "IMAGE_COMPRESSION.hpp"
 #include <mpi.h>
 
 int
 main(int argc, char * argv[])
 {
 
-    FFT_2D fft;
-    if(argc > 1){
-        fft.load_image(argv[1]);
+    IMAGE_COMPRESSION compressor;
+    if(argc > 2){
+        compressor.load_image(argv[1]);
         float compression = atof(argv[2]);
-        fft.image_compression(compression);
+        compressor.image_compression(compression);
     }
     else{
         std::cout << "Not enough input! Please enter the name of the path of the image and a paramenter with the compression desired" << std::endl;
