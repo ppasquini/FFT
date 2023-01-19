@@ -19,12 +19,15 @@ FFT_2D::generate_random_input(unsigned int power){
 
 void
 FFT_2D::load_input_from_file(std::string file_path){
+    std::cout << "Loading input..." << std::endl;
+
     cSparseMatrix sparseInput;
     Eigen::loadMarket(sparseInput, file_path);
     input = cMatrix(sparseInput);
-    N = input.size();
+    N = input.rows();
     Nd = static_cast<double>(N);
-
+    
+    std::cout << "Loading done" << std::endl;
 }
 
 
