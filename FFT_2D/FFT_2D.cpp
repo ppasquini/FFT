@@ -6,14 +6,14 @@ using namespace std::chrono;
 
 void
 FFT_2D::generate_random_input(unsigned int power){
-    std::cout << "Loading input" << std::endl;
+    std::cout << "Loading input..." << std::endl;
 
     N = std::pow(2,power);
     Nd = static_cast<double>(N);
     input = cMatrix::Random(N,N);
     //Create random test matrix
 
-    std::cout << "Done loading" << std::endl;
+    std::cout << "Loading done" << std::endl;
     
 }
 
@@ -63,13 +63,12 @@ FFT_2D::vector_reversal(cVector x, unsigned int dim){
 void
 FFT_2D::iterative_solve(){
 
-    std::cout << "Starting fft iterative" << std::endl;
+    std::cout << "Computing iterative FFT" << std::endl;
 
     cVector input_vector;
     input_vector.resize(N);
 
     iterative_solution.resize(N,N);
-
 
     for (std::size_t i = 0; i < N; i++)
     {
@@ -84,40 +83,6 @@ FFT_2D::iterative_solve(){
     }
      
 }
-
-
-void
-FFT_2D::iterative_solve_wrapped(){
-    Complex wd, w, o, p;
-    Complex im = {0.0, 1.0};
-
-    //Compute bit reversal
-    temp_solution = vector_reversal(temp_input, N);
-
-    unsigned int steps = std::log2(N);
-
-    // Iterate Steps
-    for (int i = 1; i <= steps; i++)
-    {
-        auto power = std::pow(2,i);
-        // Calculate primitive root w
-        wd = std::exp(-2.0*pi*im/power);
-        w = {1.0,0.0};
-        // Iterate inside even/odd vectors
-        for (int j = 0; j < power/2; j++) // j = exponent of w
-        {
-            for (int k = j; k < N; k+=power)
-            {
-                o = w * temp_solution[k + power/2];
-                p = temp_solution[k]; 
-                temp_solution[k] = p + o;
-                temp_solution[k + power/2] = p - o;
-            }
-            w *= wd;
-        }
-    }
-}
-
 
 cVector
 FFT_2D::iterative_solve_wrapped(cVector x){
@@ -161,13 +126,12 @@ FFT_2D::parallel_solve(){
 
     const auto t0 = high_resolution_clock::now();
 
-
     cVector input_vector;
     input_vector.resize(N);
 
     parallel_solution.resize(N,N);
 
-    std::cout << "Starting fft parallel on rows" << std::endl;
+    std::cout << "Computing parallel FFT on rows" << std::endl;
 
     #pragma omp parallel for shared(input, parallel_solution) firstprivate(input_vector) num_threads(num_threads)
     for (std::size_t i = 0; i < N; i++)
@@ -176,7 +140,7 @@ FFT_2D::parallel_solve(){
         parallel_solution.row(i) = iterative_solve_wrapped(input_vector);
     }
     
-    std::cout << "Starting fft parallel on columns" << std::endl;
+    std::cout << "Computing parallel FFT on columns" << std::endl;
 
     #pragma omp parallel for shared(parallel_solution) firstprivate(input_vector) num_threads(num_threads)
     for (std::size_t i = 0; i < N; i++)
@@ -188,7 +152,7 @@ FFT_2D::parallel_solve(){
     const auto t1 = high_resolution_clock::now();
     time_parallel =  duration_cast<milliseconds>(t1 - t0).count();
 
-    std::cout << "Done computation" << std::endl;
+    std::cout << "Computation complete" << std::endl;
         
 }
 
@@ -199,7 +163,7 @@ FFT_2D::inverse_fft(){
 
     inverse_solution.resize(N, N);
 
-    std::cout << "Starting inverse fft parallel on rows" << std::endl;
+    std::cout << "Computing parallel FFT on rows" << std::endl;
 
     #pragma omp parallel for shared(inverse_solution, parallel_solution) firstprivate(input_vector) num_threads(num_threads)
     for (std::size_t i = 0; i < N; i++)
@@ -210,7 +174,7 @@ FFT_2D::inverse_fft(){
     
     inverse_solution = (1/(Nd)) * inverse_solution;
 
-    std::cout << "Starting inverse fft parallel on columns" << std::endl;
+    std::cout << "Computing parallel FFT on columns" << std::endl;
 
     #pragma omp parallel for shared(inverse_solution) firstprivate(input_vector) num_threads(num_threads)
     for (std::size_t i = 0; i < N; i++)
@@ -221,7 +185,7 @@ FFT_2D::inverse_fft(){
 
     inverse_solution = (1/(Nd)) * inverse_solution;
 
-    std::cout << "Done computation" << std::endl;
+    std::cout << "Computation complete" << std::endl;
 
 }
 
@@ -236,7 +200,6 @@ FFT_2D::inverse_solve(cVector x){
     unsigned int steps = std::log2(N);
 
     // Iterate Steps
-    //std::cout << "Computation" << std::endl;
     for (int i = 1; i <= steps; i++)
     {
         auto power = std::pow(2,i);
@@ -257,7 +220,7 @@ FFT_2D::inverse_solve(cVector x){
         }
 
     }
-    //std::cout << "end" << std::endl;
+    
     return  x;
 
 }
@@ -282,8 +245,6 @@ FFT_2D::evaluate_time_and_error(){
 
     inverse_fft();
     double max_error = ((inverse_solution - input).cwiseAbs()).maxCoeff();
- 
-
 
     std::cout << "Max error among all the elements: " << max_error << std::endl;
 

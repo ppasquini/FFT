@@ -35,7 +35,7 @@ This two final functions are mainly used to test our algorithm. **Output_and_tes
 ### **Compilation**
 Finally to compile the code enter just
 ```
-make build
+make FFT
 ```
 and then to run it with a random input of dimension 2^N enter
 ```

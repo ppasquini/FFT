@@ -7,7 +7,7 @@
 
 void
 IMAGE_COMPRESSION::load_image(const char* file_path, const int size){
-    std::cout << "Loading image" << std::endl;
+    std::cout << "Loading image..." << std::endl;
 
     int x,y,n;
     x = size;
@@ -29,7 +29,7 @@ IMAGE_COMPRESSION::load_image(const char* file_path, const int size){
         }
     }
 
-    std::cout << "Done loading" << std::endl;
+    std::cout << "Loading done" << std::endl;
 }
 
 void
@@ -50,7 +50,7 @@ IMAGE_COMPRESSION::load_image_rgb(const char* file_path, const int size, int cha
     default:
         break;
     }
-    std::cout << " channel" << std::endl;
+    std::cout << " channel..." << std::endl;
 
     int x, y;
     x = size;
@@ -73,7 +73,7 @@ IMAGE_COMPRESSION::load_image_rgb(const char* file_path, const int size, int cha
         }
     }
 
-    std::cout << "Done loading" << std::endl;
+    std::cout << "Loading done" << std::endl;
 
     if(channel == 2)
         free(data);
@@ -85,6 +85,8 @@ IMAGE_COMPRESSION::image_compression_rgb(const char* file_path, const int size, 
 
     int zeros_before_compression = 0;
     int zeros_after_compression = 0;
+
+    std::cout << "================================" << std::endl;
 
     for(size_t color = 0; color < 3; color++){
 
@@ -101,7 +103,7 @@ IMAGE_COMPRESSION::image_compression_rgb(const char* file_path, const int size, 
 
         parallel_solve();
 
-        std::cout << "Starting compression" << std::endl;
+        std::cout << "Starting compression..." << std::endl;
    
         quantization(compression);
 
@@ -115,18 +117,21 @@ IMAGE_COMPRESSION::image_compression_rgb(const char* file_path, const int size, 
 
         compression_factor_rgb.push_back(compression_factor); 
 
+        std::cout << "Compression done: matrix compressed saved in: " << file_compressed << std::endl;
+
+        std::cout << std::endl;
+
     }
     parallel_solution.resize(0,0);
 
-    std::cout << "Compression done: matrix compressed saved in: Matrix_compressed" << std::endl;
-
     std::cout << "================================" << std::endl;
 
-    int memory_saved = (zeros_after_compression - zeros_before_compression) * sizeof(Complex); 
+    int memory_saved = (zeros_after_compression - zeros_before_compression) * sizeof(Complex) / 1000; 
 
     std::cout << "Zeros entrys input: " << zeros_before_compression << std::endl;
-    std::cout << "Zeros entrys solution: " << zeros_after_compression << " with a percentage of: " << static_cast<double>(zeros_after_compression)/(3*N*N) * 100 << "% on the total number of elements" << std::endl;
-    std::cout << "Memory saved: " << memory_saved << " Bytes" << std::endl;
+    std::cout << "Zeros entrys solution: " << zeros_after_compression << " or the " << static_cast<double>(zeros_after_compression)/(3*N*N) * 100 << "% of the total number of elements" << std::endl;
+    std::cout << "Memory saved: " << memory_saved << " KBs" << std::endl;
+    std::cout << std::endl;
     
     return compression_factor_rgb;
     
@@ -141,7 +146,7 @@ IMAGE_COMPRESSION::image_compression(double compression){
 
     int zeros_before_compression = parallel_solution.size() - parallel_solution.nonZeros();  
 
-    std::cout << "Starting compression" << std::endl;
+    std::cout << "Starting compression..." << std::endl;
    
     quantization(compression);
 
@@ -156,14 +161,13 @@ IMAGE_COMPRESSION::image_compression(double compression){
 
     int zeros_after_compression = matrix_compressed.size () - matrix_compressed.nonZeros();  
 
-    int memory_saved = (zeros_after_compression - zeros_before_compression) * sizeof(Complex); 
+    int memory_saved = (zeros_after_compression - zeros_before_compression) * sizeof(Complex) / 1000; 
 
     std::cout << "Zeros entrys input: " << zeros_before_compression << std::endl;
-    std::cout << "Zeros entrys solution: " << zeros_after_compression << " with a percentage of: " << static_cast<double>(zeros_after_compression)/(N*N) * 100 << "% on the total number of elements" << std::endl;
-    std::cout << "Memory saved: " << memory_saved << " Bytes" << std::endl;
+    std::cout << "Zeros entrys solution: " << zeros_after_compression << " or the " << static_cast<double>(zeros_after_compression)/(3*N*N) * 100 << "% of the total number of elements" << std::endl;
+    std::cout << "Memory saved: " << memory_saved << " KBs" << std::endl;
     
-    return compression_factor;
-    
+    return compression_factor;  
 }
 
 void
@@ -171,7 +175,7 @@ IMAGE_COMPRESSION::image_decompression(double comp_factor){
 
     std::cout << "================================" << std::endl;
 
-    std::cout << "Starting decompression" << std::endl;
+    std::cout << "Starting decompression..." << std::endl;
 
     compression_factor = comp_factor;
 
@@ -182,7 +186,6 @@ IMAGE_COMPRESSION::image_decompression(double comp_factor){
     std::cout << "Decompression done: image saved in output.png" << std::endl;
 
     output_image();
-
 }
 
 void
@@ -190,24 +193,24 @@ IMAGE_COMPRESSION::image_decompression_rgb(std::vector<double> comp_factor_rgb, 
 
     compression_factor_rgb = comp_factor_rgb;
 
+    std::cout << "================================" << std::endl;
+
+    std::cout << "Starting decompression..." << std::endl;
+
     for(size_t color = 0; color < 3; color ++){
 
         compression_factor = compression_factor_rgb[color];
 
         load_compression(files_matrix_compressed[color]);
 
-        std::cout << "================================" << std::endl;
-
-        std::cout << "Starting decompression" << std::endl;
-
         dequantization();
 
         inverse_fft();
 
-        std::cout << "Decompression done: image saved in output.png" << std::endl;
-
         output_image_rgb(color);
     }
+
+    std::cout << "Decompression done: image saved in output.png" << std::endl;
 }
 
 void
@@ -260,11 +263,13 @@ IMAGE_COMPRESSION::output_image_rgb(int channel){
         v = (char*) malloc(3*N*N*sizeof(char));
     }
 
+    
     double max, coeff;
     
     max = (inverse_solution.cwiseAbs()).maxCoeff();
 
     coeff = 255.0 / max;
+    
     
     for(std::size_t i=0; i<N; i++){
         for(std::size_t j=0; j<N; j++){
