@@ -49,7 +49,7 @@ class IMAGE_COMPRESSION: protected FFT_2D
 
         unsigned char *data;
 
-        char *v;
+        char* v;
 
         cSparseMatrix matrix_compressed;
 

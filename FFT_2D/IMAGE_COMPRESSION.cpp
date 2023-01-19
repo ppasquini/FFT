@@ -113,6 +113,8 @@ IMAGE_COMPRESSION::image_compression_rgb(const char* file_path, const int size, 
 
         compression_factor_rgb.push_back(compression_factor); 
 
+        image_decompression_rgb(color);
+
     }
     parallel_solution.resize(0,0);
 
@@ -261,7 +263,7 @@ void
 IMAGE_COMPRESSION::output_image_rgb(int channel){
 
     if(channel == 0){
-        v = (char*) malloc(N*N*sizeof(char));
+        v = (char*) malloc(3*N*N*sizeof(char));
     }
 
     double max, coeff;
