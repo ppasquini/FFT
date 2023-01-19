@@ -113,8 +113,6 @@ IMAGE_COMPRESSION::image_compression_rgb(const char* file_path, const int size, 
 
         compression_factor_rgb.push_back(compression_factor); 
 
-        image_decompression_rgb(color);
-
     }
     parallel_solution.resize(0,0);
 
@@ -181,22 +179,33 @@ IMAGE_COMPRESSION::image_decompression(double comp_factor){
 
     std::cout << "Decompression done: image saved in output.png" << std::endl;
 
-    output_image();    
+    output_image();
+
 }
 
 void
-IMAGE_COMPRESSION::image_decompression_rgb(int color){
+IMAGE_COMPRESSION::image_decompression_rgb(std::vector<double> comp_factor_rgb, std::vector<std::string> files_matrix_compressed){
 
-    std::cout << "================================" << std::endl;
+    compression_factor_rgb = comp_factor_rgb;
 
-    std::cout << "Starting decompression" << std::endl;
-    dequantization();
+    for(size_t color = 0; color < 3; color ++){
 
-    inverse_fft();
+        compression_factor = compression_factor_rgb[color];
 
-    std::cout << "Decompression done: image saved in output.png" << std::endl;
+        load_compression(files_matrix_compressed[color]);
 
-    output_image_rgb(color);
+        std::cout << "================================" << std::endl;
+
+        std::cout << "Starting decompression" << std::endl;
+
+        dequantization();
+
+        inverse_fft();
+
+        std::cout << "Decompression done: image saved in output.png" << std::endl;
+
+        output_image_rgb(color);
+    }
 }
 
 void
@@ -291,27 +300,9 @@ IMAGE_COMPRESSION::output_image_rgb(int channel){
 }
 
 void
-IMAGE_COMPRESSION::loadCompression(std::string file_matrix_compressed){
+IMAGE_COMPRESSION::load_compression(std::string file_matrix_compressed){
     loadMarket(matrix_compressed, file_matrix_compressed);
     matrix_compressed.uncompress();
     parallel_solution = cMatrix(matrix_compressed);
-    N = parallel_solution.innerSize();
-}
-
-void
-IMAGE_COMPRESSION::loadCompression_rgb(std::vector<double> comp_factor_rgb, std::vector<std::string> files_matrix_compressed){
-    
-    compression_factor_rgb = comp_factor_rgb;
-     
-    for(size_t color = 0; color < 3; color ++){
-
-        loadMarket(matrix_compressed, files_matrix_compressed[color]);
-        matrix_compressed.uncompress();
-        parallel_solution = cMatrix(matrix_compressed);
-        N = parallel_solution.innerSize();
-
-        compression_factor = compression_factor_rgb[color];  
-        image_decompression_rgb(color);
-    }
-
+    N = matrix_compressed.rows();
 }

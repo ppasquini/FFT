@@ -24,7 +24,7 @@ class IMAGE_COMPRESSION: protected FFT_2D
         image_decompression(double comp_facto);
 
         void
-        image_decompression_rgb(int color);
+        image_decompression_rgb(std::vector<double> comp_factor_rgb, std::vector<std::string> files_matrix_compressed);
 
         void
         output_image();
@@ -33,12 +33,8 @@ class IMAGE_COMPRESSION: protected FFT_2D
         output_image_rgb(int channel);
 
         void
-        loadCompression(std::string file_matrix_compressed);
-
-        void
-        loadCompression_rgb(std::vector<double> comp_factor_rgb, std::vector<std::string> files_matrix_compressed);
+        load_compression(std::string file_matrix_compressed);
  
-
     protected:
        
         double compression;
