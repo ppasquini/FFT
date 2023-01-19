@@ -88,7 +88,6 @@ IMAGE_COMPRESSION::image_compression_rgb(const char* file_path, const int size, 
 
     for(size_t color = 0; color < 3; color++){
 
-        mkdir("Matrix");
         std::string scolor = color==0?"r":color==1?"g":"b";
 
         std::string file_compressed = "Matrix/Matrix_compressed_" + scolor;
