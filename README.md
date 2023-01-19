@@ -116,10 +116,10 @@ followed by
 ```
 ./compression [number_of_threads_used] [file_path_input_image] [image_dimension] [compression_desired] [color]
 ```
-where color can be either **bk** for a black image compression, or **rgb** for a colored one
+where color can be either **bk** for a black image compression, or **rgb** for a colored one (**rgb** by default).
 
 ### **Results**
-Here below is shown how the compression performs for black and white iamge. It is shown how the matrix sparsity pattern increases, as the compression increases too, but the quality of the image decreases at the same time.
+Here below is shown how the compression performs for a black and white image. It is shown how the matrix sparsity pattern increases, as the compression increases too, but the quality of the image decreases at the same time.
 
 <img title="Matrix compression 80%" src="FFT_2D/images/matrix80.png" style="height: 400px; width:400px;"> <img title="Image compressed" src="FFT_2D/images/output80.png" style="height: 400px; width:400px;"> 
 
