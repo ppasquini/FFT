@@ -1,6 +1,9 @@
 # FAST FOURIER TRASFORM
 ## Authors
 
+- Pasquini Pietro
+- Miani Giorgio
+
 ## **INTRODUCTION**
 Here there is a little summarize of our work for the implementation for the **Fast Fourier Trasform**. This Repo includes two folders, one for the 1 dimension fft, and another one for the 2 dimensions fft.
 Here below there is a recap of the various files and classes in the folders.
@@ -18,7 +21,7 @@ Here there's an iterative implemantion of the fast fourier trasform based on the
 This fuction is mainly used to compare the time taken by the serial algorithm, with the time taken by the parallel one.
 
 ### **Parallel solve**
-This is the parallel implementation of the **Cooley-Tuck** algorithm for the fft. The function uses MPI to scatter the input in samller vectors and distribute them between the processors fo the computer. On every local vector it performs the iterative fft and then gathers the result in the **parallel_solution** variable.
+This is the parallel implementation of the **Cooley-Tuck** algorithm for the fft. The function uses **MPI**** to scatter the input in smaller vectors and distribute them between the processors fo the computer. On every local vector it performs the iterative fft and then gathers the result in the **parallel_solution** variable.
 With large-size vectors it performs better then the serial implementation. 
 
 ### **Inverse_solve** 
@@ -39,11 +42,11 @@ make FFT
 ```
 and then to run it with a random input of dimension 2^N enter
 ```
-mpiexec -n [number_of_processors] ./main random [N]
+mpiexec -n [number_of_processors] ./FFT random [N]
 ```
 while to run in with a given input from a text file (Warning: dimension must be a power of 2!) enter
 ```
-mpiexec -n [number_of_processors] ./main [path_of_input]
+mpiexec -n [number_of_processors] ./FFT [path_of_input]
 ```
 
 
@@ -57,10 +60,10 @@ Here below there's a little summary of the new functions created:
 This functions simply iterates the serial fft on every row first, and then on every column of the input matrix in order to perform the 2 dimensional fft.
 
 ### **parallel_solve**
-The implementation of this function is very similar to the one of the **iterative_solve** with the difference that the fft is done in parallel on the rows and on the columns of thi matrix, using OPENMP nad a variable number of threads.
+The implementation of this function is very similar to the one of the **iterative_solve** with the difference that the fft is done in parallel on the rows and on the columns of thi matrix, using **OPENMP*** and a variable number of threads.
 
 ### **inverse_fft**
-This function is very similar to the **iterative_solve** except that it perfoms the inverse FFT instead of the standard one on every row and column of the matrix in the **parallel_solution** variable.
+This function is very similar to the **iterative_solve** except that it perfoms the inverse FFT instead of the standard one on every row and column of the matrix in the **parallel_solution** variable, and then saves the result in **inverse_solution**.
 
 ### **Evaluate time and error**
 This function calls the iterative solver and compares the time taken by the two algorithms, plus it also computes the inverse FFT 2D on the parallel solution and compares it with the initial input by calculating the error as

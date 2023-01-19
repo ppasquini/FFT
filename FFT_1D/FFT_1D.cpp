@@ -404,7 +404,7 @@ FFT_1D::evaluate_time_and_error(){
 
 void
 FFT_1D::save_output_in_file(){
-    std::cout << "Writing in output in file output.txt" << std::endl;
+    std::cout << "Writing output in file output.txt" << std::endl;
     std::ofstream file;
     file.open("output.txt");
 

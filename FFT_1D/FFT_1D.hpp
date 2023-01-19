@@ -3,7 +3,7 @@
 #include <bits/stdc++.h>
 #include "FFT_traits.hpp"
 
- /*!
+/*!
 * Class to perform and analyse the Fast Fourier Trasmorm in 1 dimension
 */
 class FFT_1D
@@ -17,13 +17,13 @@ class FFT_1D
 
         /*!
         * Load input from a text file
-        * @param file path of the input file. input vector shoul be a power of two in order for the programm to work well
+        * @param file path of the input file. Input vector should be a power of two in order for the programm to work well
         */
         void 
         load_input_from_file(std::string file);
 
         /*!
-        * Generate random input of a giiven dimensio
+        * Generate random input of a given dimension
         * @param power dimension of the input will be 2 elevated by the given power
         */
         void
@@ -71,7 +71,7 @@ class FFT_1D
         output_and_test();
 
         /*!
-        * Performs the iterative fft and displays the time taken by both the parallel and the iterative algorithm. Moreover it perfomrse the inverse fft on the solution 
+        * Performs the iterative FFT and displays the time taken by both the parallel and the iterative algorithm. Moreover it performs the inverse fft on the solution 
         * of the parallel solver and computes the maximum error with the initial input
         */
         void
