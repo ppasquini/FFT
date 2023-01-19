@@ -29,11 +29,6 @@ class FFT_1D
         void
         generate_random_input(unsigned int power);
 
-        /*!
-        * Computes the discrete fourier trasform on the input and saves the result in discrete_solution
-        */
-        void
-        discrete_solve();
 
         /*!
         * Computes the fast fourier trasform in a recursive way
@@ -101,6 +96,12 @@ class FFT_1D
         */
         cVector
         vector_reversal(cVector x, unsigned int dim);
+
+        /*!
+        * Computes the discrete fourier trasform on the input and saves the result in discrete_solution
+        */
+        void
+        discrete_solve();        
 
         /*!
         * Performs the discrete fourier trasform and compares the result with the parallel solution

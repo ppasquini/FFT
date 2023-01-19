@@ -24,8 +24,8 @@ class FFT_2D
         generate_random_input(unsigned int power);
 
         /*!
-        * Load input from a text file
-        * @param file path of the input file. Input vector shoud be a power of two in order for the programm to work well
+        * Load input from a file
+        * @param file path of the input file. Input matrix shoud be a power of two in order for the programm to work well
         */
         void
         load_input_from_file(std::string file_path);
@@ -36,11 +36,6 @@ class FFT_2D
         void 
         iterative_solve();
 
-       /*!
-        * Computes the fast fourier trasform in a iterative way on the input and saves the result in iterative_solution variable
-        */
-        void
-        iterative_solve_wrapped();
 
        /*!
         * Computes the fast fourier trasform in a iterative way on the given vector and returns the result
