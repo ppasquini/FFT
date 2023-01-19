@@ -108,7 +108,7 @@ The first function(**load_compression**) is usefull to load the compresse matrix
 ### **Compilation**
 To run and compile the code, first run 
 ```
-make compression build
+make compression
 ```
 followed by
 ```
