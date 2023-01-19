@@ -16,6 +16,14 @@ FFT_2D::generate_random_input(unsigned int power){
     
 }
 
+void
+FFT_2D::load_input_from_file(std::string file_path){
+    cSparseMatrix sparseInput;
+    Eigen::loadMarket(sparseInput, file_path);
+    input = cMatrix(sparseInput);
+    N = input.size();
+}
+
 
 unsigned int 
 FFT_2D::bit_reversal(unsigned int value, unsigned int dim){
@@ -158,7 +166,7 @@ FFT_2D::parallel_solve(){
 
     std::cout << "Starting fft parallel on rows" << std::endl;
 
-    #pragma omp parallel for shared(input, parallel_solution) firstprivate(input_vector) num_threads(6)
+    #pragma omp parallel for shared(input, parallel_solution) firstprivate(input_vector) num_threads(num_threads)
     for (std::size_t i = 0; i < N; i++)
     {
         input_vector = input.row(i);
@@ -167,7 +175,7 @@ FFT_2D::parallel_solve(){
     
     std::cout << "Starting fft parallel on columns" << std::endl;
 
-    #pragma omp parallel for shared(parallel_solution) firstprivate(input_vector) num_threads(6)
+    #pragma omp parallel for shared(parallel_solution) firstprivate(input_vector) num_threads(num_threads)
     for (std::size_t i = 0; i < N; i++)
     {
         input_vector = parallel_solution.col(i);
@@ -186,25 +194,27 @@ FFT_2D::inverse_fft(){
 
     cVector input_vector;
 
+    inverse_solution.resize(N, N);
+
     std::cout << "Starting inverse fft parallel on rows" << std::endl;
 
-    #pragma omp parallel for shared(parallel_solution) firstprivate(input_vector) num_threads(6)
+    #pragma omp parallel for shared(inverse_solution, parallel_solution) firstprivate(input_vector) num_threads(num_threads)
     for (std::size_t i = 0; i < N; i++)
     {
         input_vector = parallel_solution.row(i);
-        parallel_solution.row(i) = inverse_solve(input_vector);
+        inverse_solution.row(i) = inverse_solve(input_vector);
     }
     
     std::cout << "Starting inverse fft parallel on columns" << std::endl;
 
-    #pragma omp parallel for shared(parallel_solution) firstprivate(input_vector) num_threads(6)
+    #pragma omp parallel for shared(inverse_solution) firstprivate(input_vector) num_threads(num_threads)
     for (std::size_t i = 0; i < N; i++)
     {
-        input_vector = parallel_solution.col(i);
-        parallel_solution.col(i) = inverse_solve(input_vector);
+        input_vector = inverse_solution.col(i);
+        inverse_solution.col(i) = inverse_solve(input_vector);
     }
 
-    parallel_solution = 1/(Nd * Nd) * parallel_solution;
+    inverse_solution = (1/(Nd * Nd)) * inverse_solution;
 
     std::cout << "Done computation" << std::endl;
 
@@ -247,119 +257,6 @@ FFT_2D::inverse_solve(cVector x){
 
 }
 
-
-/*
-void
-FFT_2D::parallel_solve_wrapped(){
-
-    int mpi_rank,mpi_size;
-    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-
-
-    Complex wd, w, o, p;
-    const Complex im = {0.0,1.0};
-
-    if(mpi_rank == 0){
-        std::cout << "=================================" << std::endl;
-        std::cout << "Solving prolem parallel" << std::endl;
-        std::cout << "PHASE: I" << std::endl;
-        //PHASE I: Compute bit reversal
-        temp_solution = vector_reversal(temp_input, N);
-    }
-
-
-
-    unsigned int N = temp_solution.size();
-    MPI_Bcast(&N, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
-    const unsigned int local_size = N / mpi_size;
-
-    cVector local_vector;
-    local_vector.resize(local_size);
-
-    MPI_Scatter(temp_solution.data(), local_size , MPI_DOUBLE_COMPLEX, local_vector.data(), local_size, MPI_DOUBLE_COMPLEX , 0, MPI_COMM_WORLD);
-
-    std::cout << "Thread: " << mpi_rank << " in PHASE: II" << std::endl;
-
-    //PHASE II: compute with local elements
-    unsigned int initial_steps = std::log2(N) - std::log2(mpi_size);
-    for(size_t i = 1; i <= initial_steps; i++){
-
-        auto power = std::pow(2,i);
-        // Calculate primitive root w
-        wd = std::exp(-2.0*pi*im/power);
-        w = {1.0,0.0};
-        // Iterate inside even/odd vectors
-        for (size_t j = 0; j < power/2; j++) // j = exponent of w
-        {
-            for (size_t k = j; k < local_size; k+=power)
-            {
-                o = w * local_vector[k + power/2];
-                p = local_vector[k]; 
-                local_vector[k] = p + o;
-                local_vector[k + power/2] = p - o;
-            }
-            w *= wd;
-        }    
-
-    }
-
-
-    std::cout << "Thread: " << mpi_rank << " in PHASE: III" << std::endl;
-
-    //PHASE III: swap elements and  compute
-    unsigned int final_steps = std::log2(N);
-    cVector swap_vector;
-    swap_vector.resize(local_size);
-
-    for(size_t i = initial_steps + 1; i <= final_steps; i++){
-
-        auto power = std::pow(2,i);
-        // Calculate primitive root w
-        wd = std::exp(-2.0*pi*im/power);
-        int sign;
-        int size = static_cast <unsigned int> ((power/(local_size))); //numero vettori scambio
-        // Determine if the processor has to send data "forwards" or "backwards"
-        if((mpi_rank % size) < (size/2)){
-            sign = 1;
-            w = std::pow(wd, (mpi_rank % size) * local_size);
-        }
-        else{
-            sign = -1;
-            w = std::pow(wd, ((mpi_rank + sign * (size/2)) % size) * local_size);
-        }
-        //Rank of processor communicating with
-        unsigned int swap = mpi_rank + sign * size/2;
-        //std::cout << "Thread: " << mpi_rank << " send to " << swap << std::endl;
-        MPI_Sendrecv(local_vector.data(), local_size, MPI_DOUBLE_COMPLEX, swap, 0, swap_vector.data(), local_size, MPI_DOUBLE_COMPLEX, swap, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);  
-
-        //std::cout << "Thread: " << mpi_rank << " Step: " << i << std::endl;
-
-        // Iterate inside even/odd vectors
-        for (size_t k = 0; k < local_size; k++)
-            {
-            if(sign > 0){
-                o = w * swap_vector[k];
-                p = local_vector[k]; 
-                local_vector[k] = p + o;                    
-            }
-            else{
-                o = w * local_vector[k];
-                p = swap_vector[k]; 
-                local_vector[k] = p - o;
-            }
-            w *= wd;
-        }    
-    }
-
-    MPI_Gather(local_vector.data(), local_size, MPI_DOUBLE_COMPLEX,
-                temp_solution.data(), local_size, MPI_DOUBLE_COMPLEX, 0, MPI_COMM_WORLD);
-
-    std::cout << "Thread: " << mpi_rank << " DONE" << std::endl;
-}
-
-*/
-
 void
 FFT_2D::evaluate_time_and_error(){
     std::cout << "=================================" << std::endl;
@@ -375,12 +272,22 @@ FFT_2D::evaluate_time_and_error(){
     std::cout << "Time gained: "<< difference << " ms" << std::endl;
 
     std::cout << "=================================" << std::endl;
-    std::cout << "Error Evaluation" <<std::endl << "Compared with best serial implementation(iterative): " << std::endl;
+    std::cout << "Error Evaluation" <<std::endl << "Inverse fft of the parallel solution compared with the initial input " << std::endl;
 
-    //TODO: COMPLETE ERROR COMPUTATION
-    //double relative_error = std::abs(parallel_solution. - iterative_solution)/std::abs(iterative_solution);
 
-    //std::cout << "Relative error: " << relative_error << std::endl;
+    inverse_fft();
+    double max_error = ((inverse_solution - input).cwiseAbs()).maxCoeff();
+ 
+
+
+    std::cout << "Max error among all the elements: " << max_error << std::endl;
+
+}
+
+void
+FFT_2D::save_output_in_file(std::string name_file_output){
+    cSparseMatrix sparseMatrix = parallel_solution.sparseView();
+    Eigen::saveMarket(sparseMatrix, name_file_output);
 }
 
 

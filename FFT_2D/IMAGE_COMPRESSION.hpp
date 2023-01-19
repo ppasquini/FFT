@@ -6,7 +6,7 @@ class IMAGE_COMPRESSION: protected FFT_2D
 {
     public:
 
-        IMAGE_COMPRESSION(){}
+        IMAGE_COMPRESSION(int threads):FFT_2D(threads) {}
 
         void
         load_image(const char* file_path, const int size);

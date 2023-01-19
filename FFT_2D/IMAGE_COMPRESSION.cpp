@@ -4,7 +4,6 @@
 #include "stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
-#include <unsupported/Eigen/SparseExtra>
 
 void
 IMAGE_COMPRESSION::load_image(const char* file_path, const int size){
@@ -25,7 +24,7 @@ IMAGE_COMPRESSION::load_image(const char* file_path, const int size){
     for(std::size_t i=0; i<y; i++){
         for(std::size_t j=0; j<x; j++){
             num = {static_cast<double>(data[y*i+j]), 0.0};
-            input(i,j) = num;
+            input.coeffRef(i,j) = num;
         }
     }
 
@@ -68,7 +67,7 @@ IMAGE_COMPRESSION::load_image_rgb(const char* file_path, const int size, int cha
     for(std::size_t i=0; i<y; i++){
         for(std::size_t j=0; j<x; j++){
             num = {static_cast<double>(data[3*y*i+j*3+channel]), 0.0};
-            input(i,j) = num;
+            input.coeffRef(i,j) = num;
         }
     }
 
@@ -215,7 +214,7 @@ IMAGE_COMPRESSION::quantization(double compression){
     double sum = 0.0;
     for(std::size_t i=0; i<N; i++){
         for(std::size_t j=0; j<N; j++){
-            sum += std::abs((parallel_solution(i,j)));
+            sum += std::abs((parallel_solution.coeff(i,j)));
         }
     }
 
@@ -225,8 +224,8 @@ IMAGE_COMPRESSION::quantization(double compression){
 
     for(std::size_t i=0; i<N; i++){ 
         for(std::size_t j=0; j<N; j++){
-            parallel_solution(i,j) = (parallel_solution(i,j) / compression_factor);
-            if(abs(parallel_solution(i,j)) < 1.0) parallel_solution(i, j) = {0.0, 0.0};
+            parallel_solution.coeffRef(i,j) = (parallel_solution.coeff(i,j) / compression_factor);
+            if(abs(parallel_solution.coeff(i,j)) < 1.0) parallel_solution.coeffRef(i, j) = {0.0, 0.0};
         }
     }
 
@@ -237,7 +236,7 @@ IMAGE_COMPRESSION::dequantization(){
 
     for(std::size_t i=0; i<N; i++){
         for(std::size_t j=0; j<N; j++){
-            parallel_solution(i,j) = parallel_solution(i,j) * compression_factor;
+            parallel_solution.coeffRef(i,j) = parallel_solution.coeff(i,j) * compression_factor;
         }
     }
 }
@@ -251,8 +250,8 @@ IMAGE_COMPRESSION::output_image(){
     max = 0.0;
     for(std::size_t i=0; i<N; i++){
         for(std::size_t j=0; j<N; j++){
-            if (std::abs(parallel_solution(i,j)) > max) 
-                max = std::abs(parallel_solution(i,j));
+            if (std::abs(inverse_solution.coeff(i,j)) > max) 
+                max = std::abs(inverse_solution.coeff(i,j));
         }
     }
     
@@ -260,7 +259,7 @@ IMAGE_COMPRESSION::output_image(){
     
     for(std::size_t i=0; i<N; i++){
         for(std::size_t j=0; j<N; j++){
-            v[N*i+j] = static_cast<char>(coeff * std::abs(parallel_solution(i,j)));
+            v[N*i+j] = static_cast<char>(coeff * std::abs(inverse_solution.coeff(i,j)));
         }
     }
 
@@ -280,8 +279,8 @@ IMAGE_COMPRESSION::output_image_rgb(int channel){
     max = 0.0;
     for(std::size_t i=0; i<N; i++){
         for(std::size_t j=0; j<N; j++){
-            if (std::abs(parallel_solution(i,j)) > max) 
-                max = std::abs(parallel_solution(i,j));
+            if (std::abs(parallel_solution.coeff(i,j)) > max) 
+                max = std::abs(parallel_solution.coeff(i,j));
         }
     }
     
@@ -289,7 +288,7 @@ IMAGE_COMPRESSION::output_image_rgb(int channel){
     
     for(std::size_t i=0; i<N; i++){
         for(std::size_t j=0; j<N; j++){
-            v[3*N*i+3*j+channel] = static_cast<char>(coeff * std::abs(parallel_solution(i,j)));
+            v[3*N*i+3*j+channel] = static_cast<char>(coeff * std::abs(parallel_solution.coeff(i,j)));
         }
     }
 
@@ -301,7 +300,7 @@ IMAGE_COMPRESSION::output_image_rgb(int channel){
 
 void
 IMAGE_COMPRESSION::load_compression(std::string file_matrix_compressed){
-    loadMarket(matrix_compressed, file_matrix_compressed);
+    Eigen::loadMarket(matrix_compressed, file_matrix_compressed);
     matrix_compressed.uncompress();
     parallel_solution = cMatrix(matrix_compressed);
     N = matrix_compressed.rows();

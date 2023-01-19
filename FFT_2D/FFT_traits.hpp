@@ -2,7 +2,7 @@
 #include <vector>
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
-
+#include <unsupported/Eigen/SparseExtra>
 
 using cVector = Eigen::VectorXcd;
 using cMatrix = Eigen::MatrixXcd;

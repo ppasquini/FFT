@@ -7,10 +7,13 @@ class FFT_2D
 {
     public:
 
-        FFT_2D(){}
+        FFT_2D(int threads):num_threads{threads}{}
 
         void
         generate_random_input(unsigned int power);
+
+        void
+        load_input_from_file(std::string file_path);
 
         void 
         iterative_solve();
@@ -36,6 +39,9 @@ class FFT_2D
         void
         evaluate_time_and_error();
 
+        void
+        save_output_in_file(std::string name_file_output);
+
     protected:
 
         unsigned int 
@@ -43,6 +49,9 @@ class FFT_2D
 
         cVector
         vector_reversal(cVector x, unsigned int dim);
+
+        int
+        num_threads;
         
         unsigned int N;
 
@@ -59,6 +68,8 @@ class FFT_2D
         cMatrix parallel_solution;
 
         cMatrix iterative_solution;
+
+        cMatrix inverse_solution;
 
         cVector temp_solution;
 
