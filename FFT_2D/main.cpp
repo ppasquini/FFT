@@ -17,7 +17,6 @@ main(int argc, char * argv[])
 
         int threads = atoi(argv[1]);
         IMAGE_COMPRESSION compressor(threads);
-        IMAGE_COMPRESSION new_compressor(threads);
         std::vector<double> compression_factors; 
         compression_factors = compressor.image_compression_rgb(argv[2], atoi(argv[3]), atof(argv[4]));
         std::vector<std::string> compression_files = {"Matrix_compressed_r", "Matrix_compressed_g", "Matrix_compressed_b"};

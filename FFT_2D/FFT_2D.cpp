@@ -257,6 +257,7 @@ FFT_2D::inverse_solve(cVector x){
 
 }
 
+
 void
 FFT_2D::evaluate_time_and_error(){
     std::cout << "=================================" << std::endl;
