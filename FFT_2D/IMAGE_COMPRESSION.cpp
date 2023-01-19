@@ -279,8 +279,8 @@ IMAGE_COMPRESSION::output_image_rgb(int channel){
     max = 0.0;
     for(std::size_t i=0; i<N; i++){
         for(std::size_t j=0; j<N; j++){
-            if (std::abs(parallel_solution.coeff(i,j)) > max) 
-                max = std::abs(parallel_solution.coeff(i,j));
+            if (std::abs(inverse_solution.coeff(i,j)) > max) 
+                max = std::abs(inverse_solution.coeff(i,j));
         }
     }
     
@@ -288,7 +288,7 @@ IMAGE_COMPRESSION::output_image_rgb(int channel){
     
     for(std::size_t i=0; i<N; i++){
         for(std::size_t j=0; j<N; j++){
-            v[3*N*i+3*j+channel] = static_cast<char>(coeff * std::abs(parallel_solution.coeff(i,j)));
+            v[3*N*i+3*j+channel] = static_cast<char>(coeff * std::abs(inverse_solution.coeff(i,j)));
         }
     }
 
