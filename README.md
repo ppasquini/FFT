@@ -1,4 +1,4 @@
-# FAST FOURIER TRASFORM
+# FAST FOURIER TRANSFORM
 ## Authors
 
 - Pasquini Pietro
