@@ -55,7 +55,7 @@ class FFT_2D
         
         unsigned int N;
 
-        double Nd = static_cast<double>(N);
+        double Nd;
 
         double time_parallel;
 

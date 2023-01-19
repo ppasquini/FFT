@@ -6,11 +6,11 @@ int
 main(int argc, char * argv[])
 {
 
-    if(argc > 1){
+    if(argc > 2){
         int threads = atoi(argv[1]);
         FFT_2D fft_2D(threads);
         std::string file(argv[2]);
-        if(file =="random" && argc > 2){
+        if(file =="random" && argc > 3){
              int exp = atoi(argv[3]);
              fft_2D.generate_random_input(exp);
         }

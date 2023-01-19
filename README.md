@@ -71,15 +71,15 @@ This function calls the iterative solver and compares the time taken by the two 
 ### **Compilation**
 For the compilation, first run
 ```
-make build
+make FFT
 ```
 and then to run it with a random input of dimension 2^N enter
 ```
-./main [number_of_threads_used] random [N]
+./FFT [number_of_threads_used] random [N]
 ```
 while to run in with a given input from a text file (Warning: dimension must be a power of 2!) enter
 ```
-./main [number_of_threads_used] [path_of_input]
+./FFT [number_of_threads_used] [path_of_input]
 ```
 
 
@@ -91,7 +91,7 @@ Here below there is a summary of the main fuction used for the compression and d
 This function takes the input matrix and perfoms first the 2D FFT and then compresses the result by calling the quantization function. It then calculates the number of zero elements in the matrix before and after the compression, displays the results and the memory saved and then finally saves the matrix as Sparse and stores it in the **matrix_compressed** file. Moreover it returns the compression factor calculated by the quantization function.
 
 ### **quantization**
-The quantization basically takes all the matrix parameters and saves only the high frequency, while the low ones are set to zero. To get the high frequency it calculates a compression factor using the mean of the absolute values of the parameters multiplied by the **compression** parameter given as input on the command line; this parameter should go from 0.5 for a low compression, to 1.25 to an higher one. The matrix parameters are then divided by this compression factor, in this way all low frequency will be less then one. The function finally calculates the absolute value of the matrix parameters and sets to zero if they are less then 1.0 (low frequency) in order to get as much zero entries as possible to save memory.
+The quantization basically takes all the matrix parameters and saves only the high frequency, while the low ones are set to zero. To get the high frequency it calculates a compression factor using the mean of the absolute values of the parameters multiplied by the **compression** parameter given as input on the command line; this parameter should go from 0.5 for a low compression, to 1.0 to an higher one. The matrix parameters are then divided by this compression factor, in this way all low frequency will be less then one. The function finally calculates the absolute value of the matrix parameters and sets to zero if they are less then 1.0 (low frequency) in order to get as much zero entries as possible to save memory.
 
 ### **decompression**
 This function is the inverse of the **image_compression**, it basically performs a dequantization, then it computes the inverse 2D FFT on the result and finally it saves the image in the **outpu.png** file.
@@ -108,13 +108,13 @@ The first function(**load_compression**) is usefull to load the compresse matrix
 ### **Compilation**
 To run and compile the code, first run 
 ```
-make build
+make compression build
 ```
 followed by
 ```
-./main [number_of_threads_used] [file_path_input_image] [image_dimension] [compression_desired]
+./compression [number_of_threads_used] [file_path_input_image] [image_dimension] [compression_desired] [color]
 ```
-
+where color can be either "bk" for a black image compression, or "rgb" for a colored one
 
 
 

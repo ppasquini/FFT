@@ -16,6 +16,7 @@ IMAGE_COMPRESSION::load_image(const char* file_path, const int size){
     data = stbi_load(file_path, &x, &y, &n, 1);
 
     N = size;
+    Nd = static_cast<double>(N);
 
     input.resize(x,y);
 
@@ -55,6 +56,7 @@ IMAGE_COMPRESSION::load_image_rgb(const char* file_path, const int size, int cha
     x = size;
     y = size;
     N = size;
+    Nd = static_cast<double>(N);
 
     if(channel == 0){
         int n = 8;
@@ -85,10 +87,12 @@ IMAGE_COMPRESSION::image_compression_rgb(const char* file_path, const int size, 
     int zeros_after_compression = 0;
 
     for(size_t color = 0; color < 3; color++){
+
+        mkdir("Matrix");
         std::string scolor = color==0?"r":color==1?"g":"b";
 
-        std::string file_compressed = "Matrix_compressed_" + scolor;
-        std::string file_not_compressed = "Matrix_not_compressed_" + scolor;
+        std::string file_compressed = "Matrix/Matrix_compressed_" + scolor;
+        std::string file_not_compressed = "Matrix/Matrix_not_compressed_" + scolor;
        
         Eigen::saveMarket(input, file_not_compressed);
 
@@ -132,7 +136,7 @@ IMAGE_COMPRESSION::image_compression_rgb(const char* file_path, const int size, 
 double
 IMAGE_COMPRESSION::image_compression(double compression){
 
-    Eigen::saveMarket(input, "Matrix_not_compressed");
+    Eigen::saveMarket(input, "Matrix/Matrix_not_compressed_bk");
 
     parallel_solve();
 
@@ -144,7 +148,7 @@ IMAGE_COMPRESSION::image_compression(double compression){
 
     matrix_compressed = parallel_solution.sparseView();
     matrix_compressed.makeCompressed();
-    Eigen::saveMarket(matrix_compressed, "Matrix_compressed"); 
+    Eigen::saveMarket(matrix_compressed, "Matrix/Matrix_compressed_bk"); 
     parallel_solution.resize(0,0);
 
     std::cout << "Compression done: matrix compressed saved in: Matrix_compressed" << std::endl;
@@ -211,16 +215,9 @@ void
 IMAGE_COMPRESSION::quantization(double compression){
 
     compression = compression / (1.0 - 0.8 * compression);
-    double sum = 0.0;
-    for(std::size_t i=0; i<N; i++){
-        for(std::size_t j=0; j<N; j++){
-            sum += std::abs((parallel_solution.coeff(i,j)));
-        }
-    }
+    double sum = (parallel_solution.cwiseAbs()).sum();
 
     compression_factor = ((sum/(N*N))*(compression));
-
-
 
     for(std::size_t i=0; i<N; i++){ 
         for(std::size_t j=0; j<N; j++){
@@ -234,11 +231,7 @@ IMAGE_COMPRESSION::quantization(double compression){
 void
 IMAGE_COMPRESSION::dequantization(){
 
-    for(std::size_t i=0; i<N; i++){
-        for(std::size_t j=0; j<N; j++){
-            parallel_solution.coeffRef(i,j) = parallel_solution.coeff(i,j) * compression_factor;
-        }
-    }
+    parallel_solution = parallel_solution * compression_factor;
 }
 
 void
@@ -247,13 +240,7 @@ IMAGE_COMPRESSION::output_image(){
     double max, coeff;
     v = (char*) malloc(N*N*sizeof(char));
     
-    max = 0.0;
-    for(std::size_t i=0; i<N; i++){
-        for(std::size_t j=0; j<N; j++){
-            if (std::abs(inverse_solution.coeff(i,j)) > max) 
-                max = std::abs(inverse_solution.coeff(i,j));
-        }
-    }
+    max = (inverse_solution.cwiseAbs()).maxCoeff();
     
     coeff = 255.0 / max;
     
@@ -276,14 +263,8 @@ IMAGE_COMPRESSION::output_image_rgb(int channel){
 
     double max, coeff;
     
-    max = 0.0;
-    for(std::size_t i=0; i<N; i++){
-        for(std::size_t j=0; j<N; j++){
-            if (std::abs(inverse_solution.coeff(i,j)) > max) 
-                max = std::abs(inverse_solution.coeff(i,j));
-        }
-    }
-    
+    max = (inverse_solution.cwiseAbs()).maxCoeff();
+
     coeff = 255.0 / max;
     
     for(std::size_t i=0; i<N; i++){
@@ -304,4 +285,6 @@ IMAGE_COMPRESSION::load_compression(std::string file_matrix_compressed){
     matrix_compressed.uncompress();
     parallel_solution = cMatrix(matrix_compressed);
     N = matrix_compressed.rows();
+    Nd = static_cast<double>(N);
+
 }

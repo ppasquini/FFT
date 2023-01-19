@@ -7,26 +7,32 @@ main(int argc, char * argv[])
 {
 
 
-    if(argc > 4){
-        /*
-        compressor.load_image(argv[1], atoi(argv[2]));
-        float compression = atof(argv[3]);
-        double compression_factor = compressor.image_compression(compression);
-        compressor.loadCompression("Matrix_compressed.txt");
-        compressor.image_decompression(compression_factor);*/ //for black and white
-
+    if(argc > 5){
         int threads = atoi(argv[1]);
         IMAGE_COMPRESSION compressor(threads);
-        std::vector<double> compression_factors; 
-        compression_factors = compressor.image_compression_rgb(argv[2], atoi(argv[3]), atof(argv[4]));
-        std::vector<std::string> compression_files = {"Matrix_compressed_r", "Matrix_compressed_g", "Matrix_compressed_b"};
-        std::this_thread::sleep_for(std::chrono::seconds(5));
-        compressor.image_decompression_rgb(compression_factors, compression_files);
+
+        const char* file_path = argv[2];
+        int dimension_image = atoi(argv[3]);
+        float compression = atof(argv[4]);
+        std::string color = argv[5];
+
+        if(color == "bk"){
+            compressor.load_image(file_path, dimension_image);
+            double compression_factor = compressor.image_compression(compression);
+            compressor.load_compression("Matrix/Matrix_compressed_bk");
+            compressor.image_decompression(compression_factor);
+        }
+        else{
+            std::vector<double> compression_factors; 
+            compression_factors = compressor.image_compression_rgb(file_path, dimension_image, compression);
+            std::vector<std::string> compression_files = {"Matrix/Matrix_compressed_r", "Matrix/Matrix_compressed_g", "Matrix/Matrix_compressed_b"};
+            compressor.image_decompression_rgb(compression_factors, compression_files);
+        }
     }
     else{
-        std::cout << "Not enough inputs! Please enter the number of threads name of the image, the size of its side and a paramenter from 0 to 1 for the desired compression" << std::endl;
+        std::cout << "Not enough inputs! Please enter:\n- the number of threads\n- name of the image\n- the size of its side\n- paramenter from 0 to 1 for the desired compression\n- \"nk\" for a black and white image or \"rgb\" for a colored one" << std::endl;
         return 1;
-    }    // fft.evaluate_time_and_error();
+    }   
     
 
 

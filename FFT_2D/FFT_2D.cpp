@@ -9,6 +9,7 @@ FFT_2D::generate_random_input(unsigned int power){
     std::cout << "Loading input" << std::endl;
 
     N = std::pow(2,power);
+    Nd = static_cast<double>(N);
     input = cMatrix::Random(N,N);
     //Create random test matrix
 
@@ -22,6 +23,8 @@ FFT_2D::load_input_from_file(std::string file_path){
     Eigen::loadMarket(sparseInput, file_path);
     input = cMatrix(sparseInput);
     N = input.size();
+    Nd = static_cast<double>(N);
+
 }
 
 
@@ -76,7 +79,7 @@ FFT_2D::iterative_solve(){
 
     for (std::size_t i = 0; i < N; i++)
     {
-        cVector input_vector = input.col(i);
+        cVector input_vector = iterative_solution.col(i);
         iterative_solution.col(i) = iterative_solve_wrapped(input_vector);
     }
      
@@ -205,6 +208,8 @@ FFT_2D::inverse_fft(){
         inverse_solution.row(i) = inverse_solve(input_vector);
     }
     
+    inverse_solution = (1/(Nd)) * inverse_solution;
+
     std::cout << "Starting inverse fft parallel on columns" << std::endl;
 
     #pragma omp parallel for shared(inverse_solution) firstprivate(input_vector) num_threads(num_threads)
@@ -214,7 +219,7 @@ FFT_2D::inverse_fft(){
         inverse_solution.col(i) = inverse_solve(input_vector);
     }
 
-    inverse_solution = (1/(Nd * Nd)) * inverse_solution;
+    inverse_solution = (1/(Nd)) * inverse_solution;
 
     std::cout << "Done computation" << std::endl;
 
@@ -257,7 +262,6 @@ FFT_2D::inverse_solve(cVector x){
 
 }
 
-
 void
 FFT_2D::evaluate_time_and_error(){
     std::cout << "=================================" << std::endl;
@@ -287,8 +291,10 @@ FFT_2D::evaluate_time_and_error(){
 
 void
 FFT_2D::save_output_in_file(std::string name_file_output){
-    cSparseMatrix sparseMatrix = parallel_solution.sparseView();
+    cSparseMatrix sparseMatrix = inverse_solution.sparseView();
     Eigen::saveMarket(sparseMatrix, name_file_output);
+    sparseMatrix = input.sparseView();
+    Eigen::saveMarket(sparseMatrix, "name_file_output");
 }
 
 
