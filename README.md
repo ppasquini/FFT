@@ -5,7 +5,7 @@
 - Miani Giorgio
 
 ## **INTRODUCTION**
-Here there is a little summarize of our work for the implementation of the **Fast Fourier Trasform**. This Repo includes two folders, one for the 1 dimension FFT, and another one for the 2 dimensions FFT.
+Here there is a little summarize of our work for the implementation of the **Fast Fourier Transform**. This Repo includes two folders, one for the 1 dimension FFT, and another one for the 2 dimensions FFT.
 Here below there is a recap of the various files and classes in the folders.
 
 ## **FFT_1D**

@@ -75,13 +75,13 @@ FFT_2D::iterative_solve(){
 
     for (std::size_t i = 0; i < N; i++)
     {
-        cVector input_vector = input.row(i);
+        input_vector = input.row(i);
         iterative_solution.row(i) = iterative_solve_wrapped(input_vector);
     }
 
     for (std::size_t i = 0; i < N; i++)
     {
-        cVector input_vector = iterative_solution.col(i);
+        input_vector = iterative_solution.col(i);
         iterative_solution.col(i) = iterative_solve_wrapped(input_vector);
     }
      
@@ -242,6 +242,8 @@ FFT_2D::evaluate_time_and_error(){
     auto difference = time_serial - time_parallel;
     std::cout << "Time gained: "<< difference << " ms" << std::endl;
 
+    iterative_solution.resize(0, 0);
+
     std::cout << "=================================" << std::endl;
     std::cout << "Error Evaluation" <<std::endl << "Inverse fft of the parallel solution compared with the initial input " << std::endl;
 
@@ -250,6 +252,8 @@ FFT_2D::evaluate_time_and_error(){
     double max_error = ((inverse_solution - input).cwiseAbs()).maxCoeff();
 
     std::cout << "Max error among all the elements: " << max_error << std::endl;
+
+    inverse_solution.resize(0,0);
 
 }
 
