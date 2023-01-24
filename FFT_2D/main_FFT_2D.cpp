@@ -1,5 +1,4 @@
 #include "FFT_2D.hpp"
-#include <mpi.h>
 #include <chrono>
 
 int

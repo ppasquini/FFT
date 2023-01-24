@@ -153,7 +153,7 @@ FFT_2D::parallel_solve(){
     }
     
     const auto t1 = high_resolution_clock::now();
-    time_parallel =  duration_cast<milliseconds>(t1 - t0).count();
+    time_parallel =  duration_cast<microseconds>(t1 - t0).count();
 
     std::cout << "Computation complete" << std::endl;
         
@@ -236,11 +236,11 @@ FFT_2D::evaluate_time_and_error(){
     const auto t0 = high_resolution_clock::now();
     iterative_solve();
     const auto t1 = high_resolution_clock::now();
-    time_serial = duration_cast<milliseconds>(t1 - t0).count();
+    time_serial = duration_cast<microseconds>(t1 - t0).count();
 
-    std::cout << "Time taken by Serial Implementation: " << time_serial << " ms" << std::endl << "Time taken by Parallel Implementation: " << time_parallel << " ms" << std::endl;
+    std::cout << "Time taken by Serial Implementation: " << time_serial << " \u03BCs" << std::endl << "Time taken by Parallel Implementation: " << time_parallel << " \u03BCs" << std::endl;
     auto difference = time_serial - time_parallel;
-    std::cout << "Time gained: "<< difference << " ms" << std::endl;
+    std::cout << "Time gained: "<< difference << " \u03BCs" << " with a speedup of " << time_parallel/time_serial * 100 << "% using " << num_threads << " threads" << std::endl;
 
     iterative_solution.resize(0, 0);
 

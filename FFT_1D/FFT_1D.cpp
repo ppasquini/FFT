@@ -282,7 +282,7 @@ FFT_1D::parallel_solve(){
 
     if(mpi_rank == 0){
         const auto t1 = high_resolution_clock::now();
-        time_parallel =  duration_cast<milliseconds>(t1 - t0).count();
+        time_parallel =  duration_cast<microseconds>(t1 - t0).count();
     }
 
     std::cout << "Thread: " << mpi_rank << " DONE" << std::endl;
@@ -383,11 +383,11 @@ FFT_1D::evaluate_time_and_error(){
     const auto t0 = high_resolution_clock::now();
     iterative_solve();
     const auto t1 = high_resolution_clock::now();
-    time_serial = duration_cast<milliseconds>(t1 - t0).count();
+    time_serial = duration_cast<microseconds>(t1 - t0).count();
 
-    std::cout << "Time taken by Serial Implementation: " << time_serial << " ms" << std::endl << "Time taken by Parallel Implementation: " << time_parallel << " ms" << std::endl;
+    std::cout << "Time taken by Serial Implementation: " << time_serial << " \u03BCs" << std::endl << "Time taken by Parallel Implementation: " << time_parallel << " \u03BCs" << std::endl;
     auto difference = time_serial - time_parallel;
-    std::cout << "Time gained: "<< difference << " ms" << std::endl;
+    std::cout << "Time gained: "<< difference << " \u03BCs" << " with a speedup of " << time_parallel/time_serial * 100 << "%" << std::endl;
 
     std::cout << "=================================" << std::endl;
     std::cout << "Error Evaluation" <<std::endl << "Inverse fft of the parallel solution compared with the initial input " << std::endl;

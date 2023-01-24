@@ -1,5 +1,5 @@
 compression:
-	g++ main.cpp FFT_2D.cpp image_compression.cpp -fopenmp -o compression -I ${mkEigenInc}
+	g++ main.cpp FFT_2D.cpp IMAGE_COMPRESSION.cpp -fopenmp -o compression -I ${mkEigenInc}
 	mkdir Matrix
 
 FFT:
