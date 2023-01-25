@@ -21,7 +21,7 @@ class IMAGE_COMPRESSION: protected FFT_2D
         * @param size dimension of the image. It should be a power of two to work well
         */
         void
-        load_image(const char* file_path, const int size);
+        load_image(std::string const &file_path, const int size);
 
         /*!
         * Function to compress black and white images. It saves in the Matrix folder the matrix before and after the compression.
@@ -39,7 +39,7 @@ class IMAGE_COMPRESSION: protected FFT_2D
         * @return vector of compression factors calculated using the mean of the matrix for every color channel
         */
         std::vector<double>
-        image_compression_rgb(const char* file_path, const int size, double compression);
+        image_compression_rgb(std::string const &file_path, const int size, double compression);
 
         /*!
         * Function to decompress black and white images
@@ -85,7 +85,7 @@ class IMAGE_COMPRESSION: protected FFT_2D
         * @param size dimension of the image. It should be a power of two to work well
         */
         void
-        load_image_rgb(const char* file_path, const int size, int channel);
+        load_image_rgb(std::string const &file_path, const int size, int channel);
 
         /*!
         * Function to save the decompressed image
@@ -116,14 +116,15 @@ class IMAGE_COMPRESSION: protected FFT_2D
         std::vector<double> compression_factor_rgb;
 
         /*!
-        * Variable used to store the image read from input
+        * Pointer to the variable used to store the image read from input
         */
-        unsigned char *data;
+        std::unique_ptr<unsigned char*> input_data;
+
 
         /*!
-        * Variable used to store a matrix in order to write it as an image
+        * Pointer to the variable used to store a matrix in order to write it as an image
         */
-        char* v;
+        std::unique_ptr<std::string> output;
 
         /*!
         * Compressed matrix saved as a sparse matrix

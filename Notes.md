@@ -12,8 +12,8 @@ name in all uppercase characters, while in the makefile is indicated lowercase..
 # Code
 
 * In the 2D case, why are you including `mpi.h`, if you are not using mpi? By the way, why your compiler does not give you an error?    ✔  
-* You often use `const char *` instead of `std::string` C++ strings have been introduced to have safer (and more powerful) strings, compatible with C-style strings. Better use them.
+* You often use `const char *` instead of `std::string` C++ strings have been introduced to have safer (and more powerful) strings, compatible with C-style strings. Better use them.   ✔
 * You often pass `cVector`, `std::vector` and `std::string` by copy instead of by reference. Prefer `const &` to pass by value, particularly for potentially large objects. And, it any case, it does not harm.     ✔
-* You should avoid using  `new, malloc, free, delete` in modern C++, rely instead on std containers and if you need raw data buffers employ the method `data()`. Prefer smart pointers to raw pointers when the pointer is "owning" (i,e, it is supposed to handle the resource).
+* You should avoid using  `new, malloc, free, delete` in modern C++, rely instead on std containers and if you need raw data buffers employ the method `data()`. Prefer smart pointers to raw pointers when the pointer is "owning" (i,e, it is supposed to handle the resource).   ✔
 * Nice the use of traits.
 

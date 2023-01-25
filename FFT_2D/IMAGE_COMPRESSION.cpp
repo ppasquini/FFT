@@ -6,14 +6,14 @@
 #include "stb_image_write.h"
 
 void
-IMAGE_COMPRESSION::load_image(const char* file_path, const int size){
+IMAGE_COMPRESSION::load_image(std::string const &file_path, const int size){
     std::cout << "Loading image..." << std::endl;
 
     int x,y,n;
     x = size;
     y = size;
     n = 8;
-    data = stbi_load(file_path, &x, &y, &n, 1);
+    input_data = std::make_unique<unsigned char*>(stbi_load(file_path.data(), &x, &y, &n, 1));
 
     N = size;
     Nd = static_cast<double>(N);
@@ -24,16 +24,18 @@ IMAGE_COMPRESSION::load_image(const char* file_path, const int size){
 
     for(std::size_t i=0; i<y; i++){
         for(std::size_t j=0; j<x; j++){
-            num = {static_cast<double>(data[y*i+j]), 0.0};
+            num = {static_cast<double>((*input_data)[y*i+j]), 0.0};
             input.coeffRef(i,j) = num;
         }
     }
+
+    input_data.release();
 
     std::cout << "Loading done" << std::endl;
 }
 
 void
-IMAGE_COMPRESSION::load_image_rgb(const char* file_path, const int size, int channel){
+IMAGE_COMPRESSION::load_image_rgb(std::string const &file_path, const int size, int channel){
 
     std::cout << "Loading the ";
     switch (channel)
@@ -60,7 +62,7 @@ IMAGE_COMPRESSION::load_image_rgb(const char* file_path, const int size, int cha
 
     if(channel == 0){
         int n = 8;
-        data = stbi_load(file_path, &x, &y, &n, 3);
+        input_data = std::make_unique<unsigned char*>(stbi_load(file_path.data(), &x, &y, &n, 3));
         input.resize(x,y);
     }
 
@@ -68,7 +70,7 @@ IMAGE_COMPRESSION::load_image_rgb(const char* file_path, const int size, int cha
 
     for(std::size_t i=0; i<y; i++){
         for(std::size_t j=0; j<x; j++){
-            num = {static_cast<double>(data[3*y*i+j*3+channel]), 0.0};
+            num = {static_cast<double>((*input_data)[3*y*i+j*3+channel]), 0.0};
             input.coeffRef(i,j) = num;
         }
     }
@@ -76,12 +78,12 @@ IMAGE_COMPRESSION::load_image_rgb(const char* file_path, const int size, int cha
     std::cout << "Loading done" << std::endl;
 
     if(channel == 2)
-        free(data);
+        input_data.release();
 
 }
 
 std::vector<double>
-IMAGE_COMPRESSION::image_compression_rgb(const char* file_path, const int size, double compression){
+IMAGE_COMPRESSION::image_compression_rgb(std::string const &file_path, const int size, double compression){
 
     int zeros_before_compression = 0;
     int zeros_after_compression = 0;
@@ -164,7 +166,7 @@ IMAGE_COMPRESSION::image_compression(double compression){
     int memory_saved = (zeros_after_compression - zeros_before_compression) * sizeof(Complex) / 1000; 
 
     std::cout << "Zeros entrys input: " << zeros_before_compression << std::endl;
-    std::cout << "Zeros entrys solution: " << zeros_after_compression << " or the " << static_cast<double>(zeros_after_compression)/(3*N*N) * 100 << "% of the total number of elements" << std::endl;
+    std::cout << "Zeros entrys solution: " << zeros_after_compression << " or the " << static_cast<double>(zeros_after_compression)/(N*N) * 100 << "% of the total number of elements" << std::endl;
     std::cout << "Memory saved: " << memory_saved << " KBs" << std::endl;
     
     return compression_factor;  
@@ -240,27 +242,31 @@ void
 IMAGE_COMPRESSION::output_image(){
 
     double max, coeff;
-    v = (char*) malloc(N*N*sizeof(char));
-    
+    std::string v;
+    output = std::make_unique<std::string>(v);
+    (*output).resize(N*N);
+
     max = (inverse_solution.cwiseAbs()).maxCoeff();
     
     coeff = 255.0 / max;
-    
+
     for(std::size_t i=0; i<N; i++){
         for(std::size_t j=0; j<N; j++){
-            v[N*i+j] = static_cast<char>(coeff * std::abs(inverse_solution.coeff(i,j)));
+            (*output)[N*i + j] = static_cast<char>(coeff * std::abs(inverse_solution.coeff(i,j)));
         }
     }
 
-    stbi_write_png("output.png", N, N, 1, v, 0);
-    free(v);
+    stbi_write_png("output.png", N, N, 1, (*output).data(), 0);
+    output.release();
 }
 
 void
 IMAGE_COMPRESSION::output_image_rgb(int channel){
 
     if(channel == 0){
-        v = (char*) malloc(3*N*N*sizeof(char));
+        std::string v;
+        output = std::make_unique<std::string>(v);
+        (*output).resize(3*N*N);
     }
 
     
@@ -273,13 +279,13 @@ IMAGE_COMPRESSION::output_image_rgb(int channel){
     
     for(std::size_t i=0; i<N; i++){
         for(std::size_t j=0; j<N; j++){
-            v[3*N*i+3*j+channel] = static_cast<char>(coeff * std::abs(inverse_solution.coeff(i,j)));
+            (*output)[3*N*i+3*j+channel] = static_cast<char>(coeff * std::abs(inverse_solution.coeff(i,j)));
         }
     }
 
     if(channel == 2){
-        stbi_write_png("output.png", N, N, 3, v, 0);
-        free(v);
+        stbi_write_png("output.png", N, N, 3, (*output).data(), 0);
+        output.release();
     }
 }
 
