@@ -13,7 +13,7 @@ class IMAGE_COMPRESSION: protected FFT_2D
         * Constructor of the class
         * @param threads number of threads used for OPENMP
         */
-        IMAGE_COMPRESSION(int threads):FFT_2D(threads) {}
+        IMAGE_COMPRESSION(unsigned int threads):FFT_2D(threads) {}
 
         /*!
         * Load image from a file. For black and white images
@@ -119,7 +119,6 @@ class IMAGE_COMPRESSION: protected FFT_2D
         * Pointer to the variable used to store the image read from input
         */
         std::unique_ptr<unsigned char*> input_data;
-
 
         /*!
         * Pointer to the variable used to store a matrix in order to write it as an image

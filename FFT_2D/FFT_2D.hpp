@@ -14,7 +14,7 @@ class FFT_2D
         * Constructor of the class
         * @param threads number of threads used for OPENMP
         */
-        FFT_2D(int threads):num_threads{threads}{}
+        FFT_2D(unsigned int threads):num_threads{threads}{}
 
         /*!
         * Generate random input of a given dimension
@@ -103,7 +103,7 @@ class FFT_2D
         /*!
         * Number of threads
         */
-        int
+        unsigned int
         num_threads;
 
         /*!

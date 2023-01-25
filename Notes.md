@@ -1,7 +1,7 @@
 # Readme and compiling
 - Readme is clear and with nice examples. Project compiles and run with no issues. Shows nice scalability.
 
-- Some errors in the makefiles: the one in for the 1D version is missing the prerequisites. So it does not recompile the code if you change one of its sources or headers. 
+- Some errors in the makefiles: the one in for the 1D version is missing the prerequisites. So it does not recompile the code if you change one of its sources or headers.  ✔  
 
 - Instead of (or in addition to) `Time gained: xxxx ms` it would be nice to have a % speedup with respect to the number of threads to see how much the code scales. 
 And use microseconds instead of milliseconds if you want more precise measures in codes that are indeeed very fast!. In my PC the timing for the 1D test case is 0 ms! If I use microseconds I get a number different from zero (around 12).    ✔

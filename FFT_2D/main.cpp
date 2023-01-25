@@ -5,8 +5,6 @@
 int
 main(int argc, char * argv[])
 {
-
-
     if(argc > 5){
         int threads = atoi(argv[1]);
         IMAGE_COMPRESSION compressor(threads);
@@ -33,8 +31,6 @@ main(int argc, char * argv[])
         std::cout << "Not enough inputs! Please enter:\n- the number of threads\n- name of the image\n- the size of its side\n- paramenter from 0 to 1 for the desired compression\n- \"nk\" for a black and white image or \"rgb\" for a colored one" << std::endl;
         return 1;
     }   
-    
-
 
     return 0;
 
