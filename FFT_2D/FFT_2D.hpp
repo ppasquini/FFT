@@ -28,7 +28,7 @@ class FFT_2D
         * @param file path of the input file. Input matrix shoud be a power of two in order for the programm to work well
         */
         void
-        load_input_from_file(std::string file_path);
+        load_input_from_file(std::string const &file_path);
        
        /*!
         * Computes the fast fourier trasform on every row and then on every column of the input matrix and saves the result in iterative_solution variable
@@ -43,7 +43,7 @@ class FFT_2D
         * @return result of the computation
         */
         cVector
-        iterative_solve_wrapped(cVector x);
+        iterative_solve_wrapped(cVector const &vector);
 
        /*!
         * Computes the iterative fast fourier trasform in a parallel way using OPENMP on every row and then on every column of the input matrix and saves the result
@@ -65,7 +65,7 @@ class FFT_2D
         * @return result of the computation
         */
         cVector
-        inverse_solve(cVector x);
+        inverse_solve(cVector const &vector);
 
         /*!
         * Performs the iterative FFT and displays the time taken by both the parallel and the iterative algorithm. Moreover it performs the inverse fft on the solution 
@@ -79,7 +79,7 @@ class FFT_2D
         * @param name_file_output name of the file where it saves the result
         */
         void
-        save_output_in_file(std::string name_file_output);
+        save_output_in_file(std::string const &name_file_output);
 
     protected:
 
@@ -98,7 +98,7 @@ class FFT_2D
         * @param dim dimension of the vector
         */
         cVector
-        vector_reversal(cVector x, unsigned int dim);
+        vector_reversal(cVector const &x, unsigned int dim);
 
         /*!
         * Number of threads

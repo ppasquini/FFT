@@ -22,7 +22,7 @@ FFT_1D::generate_random_input(unsigned int power){
 }
 
 void
-FFT_1D::load_input_from_file(std::string file){
+FFT_1D::load_input_from_file(std::string const &file){
     std::cout << "Loading input from file: " << file << std::endl;
     std::ifstream infile(file);
 
@@ -76,7 +76,7 @@ FFT_1D::bit_reversal(unsigned int value, unsigned int dim){
 }
 
 cVector
-FFT_1D::vector_reversal(cVector x, unsigned int dim){
+FFT_1D::vector_reversal(cVector const &x, unsigned int dim){
     cVector y;
     y.resize(x.size());
     unsigned int j = 0;
@@ -90,7 +90,7 @@ FFT_1D::vector_reversal(cVector x, unsigned int dim){
 }
 
 cVector
-FFT_1D::recursive_solve(cVector x, int N){
+FFT_1D::recursive_solve(cVector const &x, int N){
     // Stopping condition
     if (N==1){
         return x;
@@ -102,8 +102,7 @@ FFT_1D::recursive_solve(cVector x, int N){
     Complex wn = std::exp(-j*2.0*pi/Nd);
     Complex w = {1.0,0.0};
 
-    cVector y;
-    y.resize(N);
+    cVector y(N);
 
     cVector y_even;
     cVector y_odd;
@@ -289,14 +288,15 @@ FFT_1D::parallel_solve(){
 }
 
 cVector
-FFT_1D::inverse_solve(cVector x){
+FFT_1D::inverse_solve(cVector const &vector){
 
-    unsigned int N = x.size();
+    unsigned int N = vector.size();
     Complex wd, w, o, p;
     Complex im = {0.0, 1.0};
+    cVector x(N);
 
     //Compute bit reversal
-    x = vector_reversal(x, N);
+    x = vector_reversal(vector, N);
 
     unsigned int steps = std::log2(N);
 
@@ -387,7 +387,7 @@ FFT_1D::evaluate_time_and_error(){
 
     std::cout << "Time taken by Serial Implementation: " << time_serial << " \u03BCs" << std::endl << "Time taken by Parallel Implementation: " << time_parallel << " \u03BCs" << std::endl;
     auto difference = time_serial - time_parallel;
-    std::cout << "Time gained: "<< difference << " \u03BCs" << " with a speedup of " << time_parallel/time_serial * 100 << "%" << std::endl;
+    std::cout << "Time gained: "<< difference << " \u03BCs" << " with a speedup of " << time_serial/time_parallel << std::endl;
 
     std::cout << "=================================" << std::endl;
     std::cout << "Error Evaluation" <<std::endl << "Inverse fft of the parallel solution compared with the initial input " << std::endl;

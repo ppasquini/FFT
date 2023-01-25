@@ -18,7 +18,7 @@ FFT_2D::generate_random_input(unsigned int power){
 }
 
 void
-FFT_2D::load_input_from_file(std::string file_path){
+FFT_2D::load_input_from_file(std::string const &file_path){
     std::cout << "Loading input..." << std::endl;
 
     cSparseMatrix sparseInput;
@@ -49,7 +49,7 @@ FFT_2D::bit_reversal(unsigned int value, unsigned int dim){
 }
 
 cVector
-FFT_2D::vector_reversal(cVector x, unsigned int dim){
+FFT_2D::vector_reversal(cVector const &x, unsigned int dim){
     cVector y;
     y.resize(x.size());
     unsigned int j = 0;
@@ -88,13 +88,14 @@ FFT_2D::iterative_solve(){
 }
 
 cVector
-FFT_2D::iterative_solve_wrapped(cVector x){
+FFT_2D::iterative_solve_wrapped(cVector const &vector){
     Complex wd, w, o, p;
     Complex im = {0.0, 1.0};
+    cVector x(N);
 
 
     //Compute bit reversal
-    x = vector_reversal(x, N);
+    x = vector_reversal(vector, N);
 
     unsigned int steps = std::log2(N);
 
@@ -193,12 +194,13 @@ FFT_2D::inverse_fft(){
 }
 
 cVector
-FFT_2D::inverse_solve(cVector x){
+FFT_2D::inverse_solve(cVector const &vector){
 
     Complex wd, w, o, p;
     Complex im = {0.0, 1.0};
+    cVector x(N);
 
-    x = vector_reversal(x, N);
+    x = vector_reversal(vector, N);
 
     unsigned int steps = std::log2(N);
 
@@ -240,13 +242,12 @@ FFT_2D::evaluate_time_and_error(){
 
     std::cout << "Time taken by Serial Implementation: " << time_serial << " \u03BCs" << std::endl << "Time taken by Parallel Implementation: " << time_parallel << " \u03BCs" << std::endl;
     auto difference = time_serial - time_parallel;
-    std::cout << "Time gained: "<< difference << " \u03BCs" << " with a speedup of " << time_parallel/time_serial * 100 << "% using " << num_threads << " threads" << std::endl;
+    std::cout << "Time gained: "<< difference << " \u03BCs" << " with a speedup of " << time_serial/time_parallel << " using " << num_threads << " threads" << std::endl;
 
     iterative_solution.resize(0, 0);
 
     std::cout << "=================================" << std::endl;
     std::cout << "Error Evaluation" <<std::endl << "Inverse fft of the parallel solution compared with the initial input " << std::endl;
-
 
     inverse_fft();
     double max_error = ((inverse_solution - input).cwiseAbs()).maxCoeff();
@@ -258,7 +259,7 @@ FFT_2D::evaluate_time_and_error(){
 }
 
 void
-FFT_2D::save_output_in_file(std::string name_file_output){
+FFT_2D::save_output_in_file(std::string const &name_file_output){
     cSparseMatrix sparseMatrix = inverse_solution.sparseView();
     Eigen::saveMarket(sparseMatrix, name_file_output);
     sparseMatrix = input.sparseView();

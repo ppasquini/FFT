@@ -55,14 +55,14 @@ class IMAGE_COMPRESSION: protected FFT_2D
         * @param files_matrix_compressed vector containing the files of the compressed matrixes for every color channel
         */
         void
-        image_decompression_rgb(std::vector<double> comp_factor_rgb, std::vector<std::string> files_matrix_compressed);
+        image_decompression_rgb(std::vector<double> const &comp_factor_rgb, std::vector<std::string> const &files_matrix_compressed);
         
         /*!
         * Loads a compressed matrix from a file
         * @param file_matrix_compressed path of the file with the matrix compressed
         */
         void
-        load_compression(std::string file_matrix_compressed);          
+        load_compression(std::string const &file_matrix_compressed);          
  
     protected:
 

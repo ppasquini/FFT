@@ -95,13 +95,13 @@ IMAGE_COMPRESSION::image_compression_rgb(const char* file_path, const int size, 
         std::string file_compressed = "Matrix/Matrix_compressed_" + scolor;
         std::string file_not_compressed = "Matrix/Matrix_not_compressed_" + scolor;
        
-        Eigen::saveMarket(input, file_not_compressed);
-
         load_image_rgb(file_path, size, color);
 
-        zeros_before_compression = parallel_solution.size() - parallel_solution.nonZeros();  
+        Eigen::saveMarket(input, file_not_compressed);
 
         parallel_solve();
+
+        zeros_before_compression += parallel_solution.size() - parallel_solution.nonZeros();  
 
         std::cout << "Starting compression..." << std::endl;
    
@@ -189,7 +189,7 @@ IMAGE_COMPRESSION::image_decompression(double comp_factor){
 }
 
 void
-IMAGE_COMPRESSION::image_decompression_rgb(std::vector<double> comp_factor_rgb, std::vector<std::string> files_matrix_compressed){
+IMAGE_COMPRESSION::image_decompression_rgb(std::vector<double> const &comp_factor_rgb, std::vector<std::string> const &files_matrix_compressed){
 
     compression_factor_rgb = comp_factor_rgb;
 
@@ -284,7 +284,7 @@ IMAGE_COMPRESSION::output_image_rgb(int channel){
 }
 
 void
-IMAGE_COMPRESSION::load_compression(std::string file_matrix_compressed){
+IMAGE_COMPRESSION::load_compression(std::string const &file_matrix_compressed){
     Eigen::loadMarket(matrix_compressed, file_matrix_compressed);
     matrix_compressed.uncompress();
     parallel_solution = cMatrix(matrix_compressed);

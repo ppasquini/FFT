@@ -20,7 +20,7 @@ class FFT_1D
         * @param file path of the input file. Input vector should be a power of two in order for the programm to work well
         */
         void 
-        load_input_from_file(std::string file);
+        load_input_from_file(std::string const &file);
 
         /*!
         * Generate random input of a given dimension
@@ -37,7 +37,7 @@ class FFT_1D
         * @return the result of the fft
         */
         cVector
-        recursive_solve(cVector x, int N);
+        recursive_solve(cVector const &x, int N);
 
         /*!
         * Computes the fast fourier trasform in a iterative way on the input and saves the result in iterative_solution variable
@@ -57,7 +57,7 @@ class FFT_1D
         * @return the result of the computation
         */
         cVector
-        inverse_solve(cVector x);
+        inverse_solve(cVector const &vector);
 
         /*!
         * Calls the test function and then output the result of the parallel solver on the display
@@ -95,7 +95,7 @@ class FFT_1D
         * @param dim dimension of the vector
         */
         cVector
-        vector_reversal(cVector x, unsigned int dim);
+        vector_reversal(cVector const &x, unsigned int dim);
 
         /*!
         * Computes the discrete fourier trasform on the input and saves the result in discrete_solution
