@@ -8,6 +8,7 @@ main(int argc, char * argv[])
     if(argc > 5){
         int threads = atoi(argv[1]);
         IMAGE_COMPRESSION compressor(threads);
+        IMAGE_COMPRESSION new_compressor(threads);
 
         const char* file_path = argv[2];
         int dimension_image = atoi(argv[3]);
@@ -17,8 +18,8 @@ main(int argc, char * argv[])
         if(color == "bk"){
             compressor.load_image(file_path, dimension_image);
             double compression_factor = compressor.image_compression(compression);
-            compressor.load_compression("Matrix/Matrix_compressed_bk");
-            compressor.image_decompression(compression_factor);
+            compressor.load_compression("Matrix/Matrix_compressed_bk"); //Decompression also possible in a  new class! new_compressor.load_compression(...)
+            compressor.image_decompression(compression_factor);         //new_compressor.image_compression(...)
         }
         else{
             std::vector<double> compression_factors; 
