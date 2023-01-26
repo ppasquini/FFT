@@ -30,7 +30,7 @@ main(int argc, char * argv[])
     if(mpi_rank == 0){
         //fft.output_and_test(); //Only use for small input
         fft.evaluate_time_and_error();
-        fft.save_output_in_file();
+        //fft.save_output_in_file();
     }
 
 
